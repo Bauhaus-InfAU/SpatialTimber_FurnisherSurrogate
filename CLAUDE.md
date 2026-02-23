@@ -4,6 +4,8 @@
 
 FurnisherSurrogate — a surrogate model to approximate slow procedural furniture placement scores for use in RL training.
 
+**Repo:** `https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate`
+
 ## Data
 
 Training data: `../SpatialTimber_DesignExplorer/Furnisher/Apartment Quality Evaluation/apartments.jsonl` (~8k apartments, 46k active rooms, JSONL format).
@@ -23,19 +25,35 @@ The surrogate predicts **per-room** scores, not per-apartment. Each room is an i
 
 Phase 1 (Setup) in progress — project directories created, `__init__.py` in place, `.gitignore` configured. Remaining: `pyproject.toml`, PyTorch CUDA, W&B login, GPU verify. See `PLAN.md` for progress (2/38 tasks).
 
+## Notion
+
+Workspace: **Spatial Timber** | Hub page: `12d02b874c6880269a34eca3dd867edf`
+
+| Database | Data source ID |
+|----------|---------------|
+| Projects | `collection://12d02b87-4c68-81da-9612-000bebce533d` |
+| Tasks | `collection://12d02b87-4c68-8126-a0dc-000bc9955625` |
+| Sprints | `collection://2fc02b87-4c68-8029-a5b5-000bfc4f15a2` |
+
+- **WP2 page:** `2f802b874c688070985bfa3f34938c50`
+- **Martin (user):** `user://4e65cb83-7da9-47b5-aa9b-76a0c47a4b48`
+- Use Notion MCP tools to read/update. Tasks are created in the Tasks data source with `Project` relation pointing to WP2.
+- **Linking convention:** When referencing repo files in Notion (task descriptions, project pages), always use full GitHub URLs so readers can click through — e.g. `[plans/03-eda.md](https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/plans/03-eda.md)`, not bare backtick paths.
+
 ## Documentation Protocol
 
 This project uses a strict "single source of truth" documentation strategy. When the user says **"document"** (or invokes `/document`), follow these rules:
 
 ### File roles — each fact lives in ONE place
 
-| File | Contains | Update frequency |
-|------|----------|-----------------|
+| File / System | Contains | Update frequency |
+|---------------|----------|-----------------|
 | `README.md` | Project description, data format, setup instructions | At milestones only |
 | `CLAUDE.md` (this file) | Current project state, conventions, key findings | End of each session |
 | `PLAN.md` | Strategy, checkboxes, decisions with rationale | As work progresses |
 | W&B | All experiment metrics, loss curves, model artifacts | Automatic during training |
 | Notebooks | Self-contained analyses (EDA, training) | During analysis work |
+| Notion (WP2 + Tasks) | Project scope, high-level task status & descriptions | When documenting |
 
 ### What to update when documenting
 
@@ -60,6 +78,17 @@ This project uses a strict "single source of truth" documentation strategy. When
    - New dependencies added
    - New setup steps required
    - Project description evolved
+
+5. **Notion WP2 project page** (`2f802b874c688070985bfa3f34938c50`) — Sync with repo state:
+   - Update the Approach / Outcome sections if scope or strategy changed
+   - Update the Summary property to reflect current project state
+   - Keep content concise — Notion is for team-facing overview, not implementation detail
+
+6. **Notion Tasks** (in Tasks data source) — Sync status with `plans/*.md`:
+   - Fetch each WP2 task; update `Status` property to match phase progress (Not Started → In Progress → Done)
+   - If a task's scope changed, update its page content (description + links)
+   - All repo file references must be clickable GitHub links (see Notion linking convention above)
+   - Phase plans (`plans/*.md`) are source of truth; Notion task status is derived
 
 ### What NOT to duplicate
 

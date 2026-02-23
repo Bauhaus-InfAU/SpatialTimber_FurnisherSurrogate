@@ -1,6 +1,6 @@
 ---
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash(git diff:*), Bash(git log:*), Bash(git status:*)
-description: Update all project documentation (CLAUDE.md, PLAN.md, README.md) and sync task progress across plan hierarchy
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash(git diff:*), Bash(git log:*), Bash(git status:*), mcp__claude_ai_Notion__notion-fetch, mcp__claude_ai_Notion__notion-update-page, mcp__claude_ai_Notion__notion-search
+description: Update all project documentation (CLAUDE.md, PLAN.md, README.md, Notion WP2 + Tasks) and sync task progress across plan hierarchy
 ---
 
 # Document Current Work
@@ -76,10 +76,46 @@ Only touch README.md if:
 
 If none of these apply, skip this step entirely.
 
-## Step 6: Summary
+## Step 6: Sync Notion WP2 + Tasks
+
+Notion IDs (from CLAUDE.md):
+- **WP2 page:** `2f802b874c688070985bfa3f34938c50`
+- **Tasks data source:** `collection://12d02b87-4c68-8126-a0dc-000bc9955625`
+- **Repo base URL for links:** `https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/`
+
+### 6a. Sync WP2 project page
+1. Fetch the WP2 page to see current content.
+2. If scope, approach, or outcomes changed this session, update the relevant sections.
+3. Update the Summary property if the project state description is stale.
+
+### 6b. Sync Notion task statuses
+Map each phase plan to its corresponding Notion task:
+
+| Phase plan | Notion task page ID |
+|------------|---------------------|
+| `plans/01-setup.md` | `31002b874c68813a8f48d47c63b45864` |
+| `plans/02-data-pipeline.md` | `31002b874c688174adbdf35944952594` |
+| `plans/03-eda.md` | `31002b874c688192b4a3ede2fa45763f` |
+| `plans/04-rasterization.md` | `31002b874c6881689d8fda7a931dc231` |
+| `plans/05-baseline-model.md` | `31002b874c6881049426f76a1ce1c73b` |
+| `plans/06-cnn-model.md` | `31002b874c68811d8346d349620e5078` |
+| `plans/07-grasshopper.md` | `31002b874c6881048d81f61ae8dfb538` |
+
+For each task:
+1. Derive status from the phase plan's checkbox progress:
+   - 0 tasks done → **Not Started**
+   - Some tasks done → **In Progress** (note: may need to be set manually if the status option doesn't exist yet)
+   - All tasks done → **Done**
+2. Update the Notion task's `Status` property if it differs from current.
+3. If the task's scope or description changed, update its page content. All repo file references must be full GitHub links.
+
+**Phase plans are source of truth** — Notion task status is derived from them, not the other way around.
+
+## Step 7: Summary
 
 After updating, provide a brief summary:
 - Which tasks were marked complete (list them)
 - Updated progress numbers per phase
 - Overall project progress (X/Y tasks complete)
 - Which files were modified
+- Which Notion pages were updated
