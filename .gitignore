@@ -33,6 +33,14 @@ data/*.npz
 # W&B
 wandb/
 
+# Secrets
+.env
+.env.*
+*.secret
+
+# Claude Code local settings
+.claude/settings.local.json
+
 # OS
 .DS_Store
 Thumbs.db

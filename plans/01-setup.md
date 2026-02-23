@@ -8,12 +8,12 @@ Set up the development environment, install dependencies, and create the project
 
 ## Tasks
 
-- [ ] Create `pyproject.toml` with all dependencies
-- [ ] Install PyTorch with CUDA 12.x support
-- [ ] Set up W&B account + `wandb login`
+- [x] Create `pyproject.toml` with all dependencies
+- [x] Install PyTorch with CUDA 12.x support
+- [x] Set up W&B account + `wandb login`
 - [x] Create `src/furnisher_surrogate/` package structure with `__init__.py`
 - [x] Create project directories (`notebooks/`, `grasshopper/`, `models/`, `data/`) + `.gitignore`
-- [ ] Verify GPU is accessible from PyTorch
+- [x] Verify GPU is accessible from PyTorch
 
 ## Dependencies (`pyproject.toml`)
 
@@ -63,3 +63,4 @@ wandb.finish()
 ## Decisions Log
 
 - **2026-02-23**: Created folder structure early (before `pyproject.toml`) to establish project layout. Empty dirs use `.gitkeep`. Data artifacts (`.npz`, `.pt`, `.onnx`, `.joblib`) and `data/apartments.jsonl` are gitignored — only `data/data_manifest.json` will be tracked.
+- **2026-02-23**: Used cu128 index instead of cu124 — driver is CUDA 12.8, cu128 provides PyTorch 2.10.0 vs cu124's max of 2.6.0. Hatchling as build backend for automatic src layout discovery and editable install. W&B project auto-creates on first `wandb.init()`, no manual step needed. W&B entity: `infau`.

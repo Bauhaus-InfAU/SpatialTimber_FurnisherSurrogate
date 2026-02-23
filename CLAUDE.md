@@ -4,7 +4,9 @@
 
 FurnisherSurrogate — a surrogate model to approximate slow procedural furniture placement scores for use in RL training.
 
-**Repo:** `https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate`
+**Repo:** `https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate` (**PUBLIC** — never commit secrets, keys, or credentials)
+
+**Secrets:** Store API keys in `.env` (gitignored). Never hardcode keys in code or tracked files.
 
 ## Data
 
@@ -23,7 +25,7 @@ The surrogate predicts **per-room** scores, not per-apartment. Each room is an i
 
 ## Status
 
-Phase 1 (Setup) in progress — project directories created, `__init__.py` in place, `.gitignore` configured. Remaining: `pyproject.toml`, PyTorch CUDA, W&B login, GPU verify. See `PLAN.md` for progress (2/38 tasks).
+Phase 1 (Setup) complete — PyTorch 2.10.0+cu128, RTX 4060 8GB verified, W&B logged in (`infau`), hatchling editable install. Phase 2 (Data Pipeline) is next. See `PLAN.md` for progress (6/38 tasks).
 
 ## Notion
 

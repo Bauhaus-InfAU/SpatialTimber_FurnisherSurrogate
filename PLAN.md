@@ -12,14 +12,14 @@ Surrogate model to predict furniture placement scores (0–100) for residential 
 
 | # | Phase | Tasks | Status | Plan |
 |---|-------|-------|--------|------|
-| 1 | **Setup** | 2/6 | `in progress` | [details](plans/01-setup.md) |
+| 1 | **Setup** | 6/6 | `done` | [details](plans/01-setup.md) |
 | 2 | **Data Pipeline** | 0/5 | `pending` | [details](plans/02-data-pipeline.md) |
 | 3 | **EDA** | 0/10 | `pending` | [details](plans/03-eda.md) |
 | 4 | **Rasterization** | 0/4 | `pending` | [details](plans/04-rasterization.md) |
 | 5 | **Baseline Model** | 0/4 | `pending` | [details](plans/05-baseline-model.md) |
 | 6 | **CNN Model** | 0/5 | `pending` | [details](plans/06-cnn-model.md) |
 | 7 | **Grasshopper** | 0/4 | `pending` | [details](plans/07-grasshopper.md) |
-| | **Total** | **2/38** | | |
+| | **Total** | **6/38** | | |
 
 ## Documentation Strategy
 
