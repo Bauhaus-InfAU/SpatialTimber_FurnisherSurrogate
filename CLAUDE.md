@@ -54,6 +54,7 @@ This project uses a strict "single source of truth" documentation strategy. When
 | W&B | All experiment metrics, loss curves, model artifacts | Automatic during training |
 | Notebooks | Self-contained analyses (EDA, training) | During analysis work |
 | Notion (WP2 + Tasks) | Project scope, high-level task status & descriptions | When documenting |
+| `tickets/*.md` | Deferred features, bugs, improvements — backlog parking lot | As noticed |
 
 ### What to update when documenting
 
@@ -89,6 +90,21 @@ This project uses a strict "single source of truth" documentation strategy. When
    - If a task's scope changed, update its page content (description + links)
    - All repo file references must be clickable GitHub links (see Notion linking convention above)
    - Phase plans (`plans/*.md`) are source of truth; Notion task status is derived
+
+7. **Tickets** (`tickets/*.md`) — Review open tickets:
+   - Mark resolved tickets as `Status: resolved` if the issue was fixed during this session
+   - If a ticket was addressed as part of a phase task, note which one
+   - Do NOT create tickets during `/document` — tickets are created ad-hoc when issues are noticed
+
+### Tickets (`tickets/`)
+
+Lightweight backlog for features, bugs, and improvements noticed mid-session that should not interrupt current work. Template: `tickets/_TEMPLATE.md`.
+
+- **Naming:** `tickets/{slug}.md` — short kebab-case slug, e.g. `tickets/non-orthogonal-rooms.md`
+- **When to create:** User says "ticket this", "note this for later", "park this", or you encounter a non-blocking issue during implementation
+- **When NOT to create:** If the issue blocks current work — fix it now instead
+- **Fields:** Type (feature/bug/improvement/tech-debt), Priority (low/medium/high), Status (open/in-progress/resolved), Phase link, Context, Description, Acceptance Criteria
+- **Lifecycle:** open → in-progress → resolved. Resolved tickets stay in the folder (git history) but get marked
 
 ### What NOT to duplicate
 

@@ -48,7 +48,8 @@ SpatialTimber_FurnisherSurrogate/
 │   └── predict.py                 # Inference API
 ├── notebooks/                     # Jupyter notebooks
 ├── grasshopper/                   # GhPython components
-└── models/                        # Saved artifacts (.pt, .joblib, .onnx)
+├── models/                        # Saved artifacts (.pt, .joblib, .onnx)
+└── tickets/                       # Deferred features, bugs, improvements
 ```
 
 ## Known Limitations

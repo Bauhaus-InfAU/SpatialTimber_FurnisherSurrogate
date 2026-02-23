@@ -23,6 +23,9 @@ Follow the documentation protocol defined in CLAUDE.md. Update all relevant proj
 @plans/06-cnn-model.md
 @plans/07-grasshopper.md
 
+### Open tickets — read ALL to check if any were resolved
+!`ls tickets/*.md 2>/dev/null | grep -v _TEMPLATE || echo "No tickets yet"`
+
 ### Recent changes
 !`git status --porcelain`
 !`git diff --name-only HEAD~5 2>/dev/null || echo "Not enough commits yet"`
@@ -111,7 +114,16 @@ For each task:
 
 **Phase plans are source of truth** — Notion task status is derived from them, not the other way around.
 
-## Step 7: Summary
+## Step 7: Review Tickets
+
+Read each open ticket in `tickets/*.md` (skip `_TEMPLATE.md`):
+
+1. If the issue was **fixed during this session**, set `Status: resolved` and note what resolved it.
+2. If a ticket relates to work done this session but is not fully resolved, leave it as `open`.
+3. Do **NOT** create new tickets here — tickets are created ad-hoc when issues are noticed mid-work.
+4. Report ticket status in the summary (how many open, any newly resolved).
+
+## Step 8: Summary
 
 After updating, provide a brief summary:
 - Which tasks were marked complete (list them)
@@ -119,3 +131,4 @@ After updating, provide a brief summary:
 - Overall project progress (X/Y tasks complete)
 - Which files were modified
 - Which Notion pages were updated
+- Ticket status (X open, Y resolved this session)
