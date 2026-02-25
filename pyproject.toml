@@ -17,6 +17,7 @@ dependencies = [
     "umap-learn",
     "plotly",
     "minisom",
+    "pandas",
 ]
 
 [build-system]

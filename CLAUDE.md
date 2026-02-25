@@ -25,7 +25,9 @@ The surrogate predicts **per-room** scores, not per-apartment. Each room is an i
 
 ## Status
 
-Phase 1 (Setup) complete — PyTorch 2.10.0+cu128, RTX 4060 8GB verified, W&B logged in (`infau`), hatchling editable install. Phase 2 (Data Pipeline) is next. See `PLAN.md` for progress (6/38 tasks).
+Phase 1 (Setup) and Phase 2 (Data Pipeline) complete. Phase 3 (EDA) is next. See `PLAN.md` for progress (11/38 tasks).
+
+**Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
 
 ## Notion
 
@@ -41,6 +43,10 @@ Workspace: **Spatial Timber** | Hub page: `12d02b874c6880269a34eca3dd867edf`
 - **Martin (user):** `user://4e65cb83-7da9-47b5-aa9b-76a0c47a4b48`
 - Use Notion MCP tools to read/update. Tasks are created in the Tasks data source with `Project` relation pointing to WP2.
 - **Linking convention:** When referencing repo files in Notion (task descriptions, project pages), always use full GitHub URLs so readers can click through — e.g. `[plans/03-eda.md](https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/plans/03-eda.md)`, not bare backtick paths.
+
+## Notebook Collaboration
+
+When a Jupyter notebook is open in VS Code with a running kernel, Claude can execute code directly in the kernel via `mcp__ide__executeCode`. This means Claude can inspect variables, check shapes, and run follow-up analysis interactively — no need for save-and-read roundtrips. User runs cells normally; Claude reads/writes to the same kernel.
 
 ## Documentation Protocol
 

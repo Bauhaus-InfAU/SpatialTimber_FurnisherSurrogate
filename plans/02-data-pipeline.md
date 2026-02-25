@@ -8,11 +8,11 @@ Build data loading, feature extraction, and train/val/test splitting infrastruct
 
 ## Tasks
 
-- [ ] `src/furnisher_surrogate/data.py` — JSONL loader, parse apartments and rooms
-- [ ] Data integrity check — SHA-256 manifest for `apartments.jsonl`
-- [ ] `src/furnisher_surrogate/features.py` — numeric feature extraction (area, aspect_ratio, n_vertices, room_type, door_rel_x, door_rel_y)
-- [ ] Apartment-level train/val/test split (80/10/10) stratified by apartment_type
-- [ ] Verify split has no apartment leakage + correct proportions
+- [x] `src/furnisher_surrogate/data.py` — JSONL loader, parse apartments and rooms
+- [x] Data integrity check — SHA-256 manifest for `apartments.jsonl`
+- [x] `src/furnisher_surrogate/features.py` — numeric feature extraction (area, aspect_ratio, n_vertices, door_rel_x, door_rel_y, room_type one-hot)
+- [x] Apartment-level train/val/test split (80/10/10) stratified by apartment_type
+- [x] Verify split has no apartment leakage + correct proportions
 
 ## Data Integrity (`data.py`)
 
@@ -69,4 +69,7 @@ Total active rooms: 45,880
 
 ## Decisions Log
 
-*(Record decisions here as they're made)*
+- **2026-02-25**: Frozen dataclasses (`Room`, `Apartment`) as domain types. `Room` stores 2D polygon (z stripped at parse time), door as 2D point, room_type + room_type_idx, score, and apartment provenance. Enforcement of loader usage is convention-based (convenience over hard enforcement) — `load_apartments()` is 1 line vs ~20 lines of manual JSONL parsing.
+- **2026-02-25**: Feature count is **14** (not 13 as originally planned): 5 numeric (area, aspect_ratio, n_vertices, door_rel_x, door_rel_y) + 9 one-hot (room types). Added door_rel_x/y to baseline features for fairer CNN comparison.
+- **2026-02-25**: Split uses two-step `StratifiedShuffleSplit` (train vs rest, then val vs test) with `random_state=42`. Returns `dict[int, Split]` mapping apartment seed → split label. No caching of processed data — JSONL re-parsed each call (~2-3 sec), acceptable for 8k apartments. Rasterization (Phase 4) will cache to `.npz`.
+- **2026-02-25**: `features.py` is pure numpy (no torch) so Grasshopper can vendor the functions later. PyTorch `Dataset` will live in `train.py` (Phase 6), not `data.py`.

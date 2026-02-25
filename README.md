@@ -76,6 +76,20 @@ For the full scoring formula, see the [Furnisher Score documentation](https://ww
 
 The model predicts per-room scores, not per-apartment. Each room is scored independently.
 
+## Setup
+
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync                     # creates .venv, installs all deps (incl. PyTorch CUDA)
+uv run wandb login           # paste API key from https://wandb.ai/authorize
+```
+
+Verify GPU access:
+```bash
+uv run python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+```
+
 ## Data Location
 
 Training data lives in the sibling repository:
