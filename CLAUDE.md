@@ -37,13 +37,15 @@ When creating a new notebook, report, or ticket, use the next available sequence
 
 ## Status
 
-Phases 1–5 (Setup, Data Pipeline, EDA, Rasterization, Baseline Model) complete. Phase 6 (CNN Model) is next. See `PLAN.md` for progress (31/40 tasks).
+Phases 1–6 (Setup, Data Pipeline, EDA, Rasterization, Baseline Model, CNN Model) complete. Phase 7 (Grasshopper) is next. See `PLAN.md` for progress (36/40 tasks).
 
 **Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
 
 **EDA findings** (see `reports/03-01_eda-findings.ipynb`): bimodal scores (28.6% fail at 0, 41.6% score >=90), area is strongest predictor (r=+0.37), door position has zero linear signal, naive MAE=37.48, inter-room correlation near zero (r=0.006). Children rooms cap at ~76. Vertex count strongly predicts score (8-vertex median=37 vs 4-vertex median=92).
 
 **Baseline model** (LightGBM): Test MAE=11.02 (71% improvement over naive 37.48), R²=0.80. Area dominant feature by gain. Kitchen (16.89) and Living room (18.84) hardest — spatial layout matters. Model saved at `models/baseline_lgbm.joblib`. W&B run: `infau/furnisher-surrogate/runs/3t4hiefb`.
+
+**CNN model** (Phase 6): Three versions trained (v1→v2→v3), MAE improved 17.90→12.40→11.23 but never beat baseline (11.02). Key finding: spatial image features provide negligible value beyond tabular features. Each improvement came from strengthening tabular branch, not from better image understanding. LightGBM remains production model for Phase 7. Best checkpoint at `models/cnn_v3.pt`. W&B runs: v1 `3wcevehy`, v2 `qutd7leh`, v3 `ld6iz2h4`.
 
 ## Reports
 
@@ -53,6 +55,7 @@ Reports from completed phases live in `reports/`. Check these before starting ne
 |--------|-------|----------|---------|
 | `reports/03-01_eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/03-01_eda-findings.html) |
 | `reports/04-01_rasterization-verification.html` | 4 (Rasterization) | Visual verification, edge cases, fill ratio checks, dataset stats, UMAP | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/04-01_rasterization-verification.html) |
+| `reports/06-01_cnn-model-comparison.ipynb` | 6 (CNN Model) | Architecture evolution v1→v3, baseline comparison, per-room-type analysis, negative result | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/06-01_cnn-model-comparison.html) |
 
 ## Notion
 

@@ -1,22 +1,35 @@
 """Furnisher Surrogate — predict furniture placement scores from room geometry."""
 
-from .data import (
-    ROOM_TYPES,
-    ROOM_TYPE_TO_IDX,
-    Apartment,
-    Room,
-    load_apartments,
-    load_rooms,
-)
-from .rasterize import IMG_SIZE, rasterize_room
+from .rasterize import IMG_SIZE, rasterize_arrays, rasterize_room
+
+# Training-time imports need sklearn, which may not be installed in
+# lightweight inference environments (e.g. Grasshopper / Rhino 8).
+try:
+    from .data import (
+        ROOM_TYPES,
+        ROOM_TYPE_TO_IDX,
+        Apartment,
+        Room,
+        load_apartments,
+        load_rooms,
+    )
+except ImportError:
+    pass
+
+try:
+    from .models import RoomCNN
+except ImportError:
+    pass
 
 __all__ = [
+    "IMG_SIZE",
+    "rasterize_arrays",
+    "rasterize_room",
     "ROOM_TYPES",
     "ROOM_TYPE_TO_IDX",
     "Apartment",
     "Room",
     "load_apartments",
     "load_rooms",
-    "IMG_SIZE",
-    "rasterize_room",
+    "RoomCNN",
 ]

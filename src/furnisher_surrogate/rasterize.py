@@ -10,10 +10,13 @@ Pure numpy + Pillow. No torch dependency (Grasshopper can reuse this).
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 from PIL import Image, ImageDraw
 
-from .data import Room
+if TYPE_CHECKING:
+    from .data import Room
 
 # ── Constants ─────────────────────────────────────────────────
 
@@ -131,21 +134,42 @@ def _render_door(
 # ── Public API ────────────────────────────────────────────────
 
 
-def rasterize_room(room: Room, img_size: int = IMG_SIZE) -> np.ndarray:
-    """Convert a Room to a 3-channel image.
+def rasterize_arrays(
+    polygon: np.ndarray,
+    door: np.ndarray,
+    img_size: int = IMG_SIZE,
+) -> np.ndarray:
+    """Rasterize from raw numpy arrays. No Room dependency.
+
+    Parameters
+    ----------
+    polygon : (N, 2) float64 — closed polyline in meters
+    door : (2,) float64 — point on wall in meters
 
     Returns
     -------
     np.ndarray of shape (3, img_size, img_size), dtype uint8.
     """
-    pixel_poly, scale, offset = polygon_to_pixel_coords(room.polygon, img_size)
-    door_px = point_to_pixel(room.door.copy(), scale, offset, img_size)
+    pixel_poly, scale, offset = polygon_to_pixel_coords(polygon, img_size)
+    door_px = point_to_pixel(door.copy(), scale, offset, img_size)
 
     ch0 = _render_mask(pixel_poly, img_size)
     ch1 = _render_edges(pixel_poly, img_size)
     ch2 = _render_door(door_px, img_size)
 
     return np.stack([ch0, ch1, ch2], axis=0)
+
+
+def rasterize_room(room: Room, img_size: int = IMG_SIZE) -> np.ndarray:
+    """Convert a Room to a 3-channel image.
+
+    Convenience wrapper around :func:`rasterize_arrays`.
+
+    Returns
+    -------
+    np.ndarray of shape (3, img_size, img_size), dtype uint8.
+    """
+    return rasterize_arrays(room.polygon, room.door, img_size)
 
 
 # ── Batch pre-rasterization ──────────────────────────────────
