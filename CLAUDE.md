@@ -25,9 +25,19 @@ The surrogate predicts **per-room** scores, not per-apartment. Each room is an i
 
 ## Status
 
-Phase 1 (Setup) and Phase 2 (Data Pipeline) complete. Phase 3 (EDA) is next. See `PLAN.md` for progress (11/38 tasks).
+Phases 1–3 (Setup, Data Pipeline, EDA) complete. Phase 4 (Rasterization) is next. See `PLAN.md` for progress (23/40 tasks).
 
 **Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
+
+**EDA findings** (see `reports/eda-findings.ipynb`): bimodal scores (28.6% fail at 0, 41.6% score >=90), area is strongest predictor (r=+0.37), door position has zero linear signal, naive MAE=37.48, inter-room correlation near zero (r=0.006). Children rooms cap at ~76. Vertex count strongly predicts score (8-vertex median=37 vs 4-vertex median=92).
+
+## Reports
+
+Reports from completed phases live in `reports/`. Check these before starting new phases — they contain data distribution boundaries, baselines, and known limitations.
+
+| Report | Phase | Contents |
+|--------|-------|----------|
+| `reports/eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries |
 
 ## Notion
 
@@ -61,6 +71,7 @@ This project uses a strict "single source of truth" documentation strategy. When
 | `PLAN.md` | Strategy, checkboxes, decisions with rationale | As work progresses |
 | W&B | All experiment metrics, loss curves, model artifacts | Automatic during training |
 | Notebooks | Self-contained analyses (EDA, training) | During analysis work |
+| `reports/` | Phase findings reports (narrative notebooks + HTML) | At phase completion |
 | Notion (WP2 + Tasks) | Project scope, high-level task status & descriptions | When documenting |
 | `tickets/*.md` | Deferred features, bugs, improvements — backlog parking lot | As noticed |
 
@@ -95,9 +106,38 @@ This project uses a strict "single source of truth" documentation strategy. When
 
 6. **Notion Tasks** (in Tasks data source) — Sync status with `plans/*.md`:
    - Fetch each WP2 task; update `Status` property to match phase progress (Not Started → In Progress → Done)
-   - If a task's scope changed, update its page content (description + links)
+   - If a task's scope changed, update its page content using the **task description template** (see below)
    - All repo file references must be clickable GitHub links (see Notion linking convention above)
    - Phase plans (`plans/*.md`) are source of truth; Notion task status is derived
+
+### Notion task description template
+
+Every WP2 task page uses this structure:
+
+```
+## Goal
+{One sentence: what problem this solves and why it matters.}
+
+## Approach
+{2-3 sentences: method and key technical decisions. For pending tasks, prefix with "Not started. Planned approach:"}
+
+## Deliverables
+| Type | Artifact |
+|------|----------|
+| {Report / Tool / Model / Dataset / Notebook / Component / Config} | {name + GitHub link} |
+
+## Conclusions
+{Bullet list of findings that matter beyond this task — things downstream tasks or other WPs need to know.
+For pending tasks: state key open questions + carry forward relevant conclusions from predecessor tasks under "From [Phase] (inputs to this task):"}
+
+## References
+- **Plan:** {link to plans/*.md}
+- **Depends on:** {Notion link to predecessor task(s)}
+- **Feeds into:** {Notion link to successor task(s)}
+```
+
+**Deliverable types**: Report, Tool, Model, Dataset, Notebook, Component, Config
+**Conclusions are forward-looking** — not a recap of what was done, but what the next person needs to know
 
 7. **Tickets** (`tickets/*.md`) — Review open tickets:
    - Mark resolved tickets as `Status: resolved` if the issue was fixed during this session

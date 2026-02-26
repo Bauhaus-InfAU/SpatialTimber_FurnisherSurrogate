@@ -6,20 +6,24 @@
 
 Understand the training data before modeling. Establish reference metrics. Identify potential issues.
 
-**Notebook**: `notebooks/01_data_exploration.ipynb`
+**Notebooks**: `notebooks/01_data_exploration.ipynb` (main EDA), `notebooks/02_umap_exploration.ipynb` (UMAP)
 
 ## Tasks
 
-- [ ] Sanity checks (record counts, missing values, score range, polygon validity, door on wall, vertex counts)
-- [ ] Score distribution analysis (overall + per-room-type + per-apartment-type + per-shape)
-- [ ] Geometry distribution analysis (area, aspect ratio, bbox)
-- [ ] Correlation matrix (numeric features vs score)
-- [ ] Visual room gallery (3x3 per room type, color by score)
-- [ ] Score=0 failure analysis (visualize failed rooms, compare distributions)
-- [ ] Door position analysis (normalized positions, correlation with score)
-- [ ] UMAP on tabular features (interactive plotly)
-- [ ] Establish reference metrics (naive MAE, feature-score correlations)
-- [ ] **Checkpoint**: Review findings before proceeding — may inform feature choices
+- [x] Sanity checks (record counts, missing values, score range, polygon validity, door on wall, vertex counts)
+- [x] Score distribution analysis (overall + per-room-type + per-apartment-type + per-shape)
+- [x] Geometry distribution analysis (area, aspect ratio, bbox)
+- [x] Correlation matrix (numeric features vs score)
+- [x] Visual room gallery (3x3 per room type, color by score)
+- [x] Score=0 failure analysis (visualize failed rooms, compare distributions)
+- [x] Door position analysis (normalized positions, correlation with score)
+- [x] UMAP — all 14 features (interactive plotly, expect room-type-dominated clusters)
+- [x] UMAP — 5 numeric features only (color by score + color by room type)
+- [x] UMAP — per room type on 5 numeric features (isolate geometry→score per type)
+- [x] Establish reference metrics (naive MAE, feature-score correlations)
+- [x] **Checkpoint**: Review findings before proceeding — may inform feature choices
+
+**Outcome:** EDA findings report at `reports/eda-findings.ipynb` ([HTML](reports/eda-findings.html)). Key findings: bimodal score (28.6% fail), area strongest predictor (r=+0.37), door position has zero signal, naive MAE=37.48, inter-room correlation near zero (r=0.006).
 
 ## Sanity Checks
 
@@ -91,4 +95,5 @@ Start with UMAP. Only add SOM (via `minisom`) if grid-based topology view is nee
 
 ## Decisions Log
 
-*(Record decisions here as they're made)*
+- **UMAP split into separate notebook** (`02_umap_exploration.ipynb`) to keep main EDA notebook fast and lightweight. Three variants: all 14 features, 5 numeric only, per room type.
+- **EDA findings report** created as narrative notebook (`reports/eda-findings.ipynb`) with HTML export for Notion embedding. Source of truth for EDA conclusions.
