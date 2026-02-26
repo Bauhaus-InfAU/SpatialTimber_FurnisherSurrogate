@@ -23,7 +23,7 @@ Understand the training data before modeling. Establish reference metrics. Ident
 - [x] Establish reference metrics (naive MAE, feature-score correlations)
 - [x] **Checkpoint**: Review findings before proceeding — may inform feature choices
 
-**Outcome:** EDA findings report at `reports/eda-findings.ipynb` ([HTML](reports/eda-findings.html)). Key findings: bimodal score (28.6% fail), area strongest predictor (r=+0.37), door position has zero signal, naive MAE=37.48, inter-room correlation near zero (r=0.006).
+**Outcome:** EDA findings report at `reports/eda-findings.ipynb` ([HTML preview](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/eda-findings.html)). Key findings: bimodal score (28.6% fail), area strongest predictor (r=+0.37), door position has zero signal, naive MAE=37.48, inter-room correlation near zero (r=0.006).
 
 ## Sanity Checks
 

@@ -33,11 +33,11 @@ Phases 1–3 (Setup, Data Pipeline, EDA) complete. Phase 4 (Rasterization) is ne
 
 ## Reports
 
-Reports from completed phases live in `reports/`. Check these before starting new phases — they contain data distribution boundaries, baselines, and known limitations.
+Reports from completed phases live in `reports/`. Check these before starting new phases — they contain data distribution boundaries, baselines, and known limitations. HTML exports are viewable via `htmlpreview.github.io` — use these preview links in Notion and plan files.
 
-| Report | Phase | Contents |
-|--------|-------|----------|
-| `reports/eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries |
+| Report | Phase | Contents | Preview |
+|--------|-------|----------|---------|
+| `reports/eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/eda-findings.html) |
 
 ## Notion
 
@@ -53,6 +53,7 @@ Workspace: **Spatial Timber** | Hub page: `12d02b874c6880269a34eca3dd867edf`
 - **Martin (user):** `user://4e65cb83-7da9-47b5-aa9b-76a0c47a4b48`
 - Use Notion MCP tools to read/update. Tasks are created in the Tasks data source with `Project` relation pointing to WP2.
 - **Linking convention:** When referencing repo files in Notion (task descriptions, project pages), always use full GitHub URLs so readers can click through — e.g. `[plans/03-eda.md](https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/plans/03-eda.md)`, not bare backtick paths.
+- **HTML report links:** For HTML reports in `reports/`, use `htmlpreview.github.io` preview URLs instead of raw GitHub links. Pattern: `https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/{filename}.html`. Use these in Notion task Deliverables tables and in plan file Outcome sections.
 
 ## Notebook Collaboration
 
