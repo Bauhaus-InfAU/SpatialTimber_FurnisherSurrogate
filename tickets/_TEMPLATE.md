@@ -1,5 +1,6 @@
 # {Title}
 
+**ID:** {next sequential number, zero-padded: 00, 01, 02, ...}
 **Type:** feature | bug | improvement | tech-debt
 **Priority:** low | medium | high
 **Noticed:** {YYYY-MM-DD}

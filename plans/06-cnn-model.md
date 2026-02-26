@@ -6,7 +6,7 @@
 
 Train a CNN on rasterized room images. Compare against baseline.
 
-**Notebook**: `notebooks/03_raster_pipeline.ipynb`
+**Notebook**: `notebooks/06-01_cnn_training.ipynb`
 
 ## Tasks
 

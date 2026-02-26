@@ -82,7 +82,7 @@ def extract_features(room: Room) -> np.ndarray:
 
 
 def extract_feature_matrix(rooms: list[Room]) -> np.ndarray:
-    """Feature matrix for a list of rooms. Shape: (N, 15)."""
+    """Feature matrix for a list of rooms. Shape: (N, 14)."""
     return np.stack([extract_features(r) for r in rooms])
 
 

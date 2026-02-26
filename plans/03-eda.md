@@ -6,7 +6,7 @@
 
 Understand the training data before modeling. Establish reference metrics. Identify potential issues.
 
-**Notebooks**: `notebooks/01_data_exploration.ipynb` (main EDA), `notebooks/02_umap_exploration.ipynb` (UMAP)
+**Notebooks**: `notebooks/03-01_data_exploration.ipynb` (main EDA), `notebooks/03-02_umap_exploration.ipynb` (UMAP)
 
 ## Tasks
 
@@ -23,7 +23,7 @@ Understand the training data before modeling. Establish reference metrics. Ident
 - [x] Establish reference metrics (naive MAE, feature-score correlations)
 - [x] **Checkpoint**: Review findings before proceeding — may inform feature choices
 
-**Outcome:** EDA findings report at `reports/eda-findings.ipynb` ([HTML preview](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/eda-findings.html)). Key findings: bimodal score (28.6% fail), area strongest predictor (r=+0.37), door position has zero signal, naive MAE=37.48, inter-room correlation near zero (r=0.006).
+**Outcome:** EDA findings report at `reports/03-01_eda-findings.ipynb` ([HTML preview](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/03-01_eda-findings.html)). Key findings: bimodal score (28.6% fail), area strongest predictor (r=+0.37), door position has zero signal, naive MAE=37.48, inter-room correlation near zero (r=0.006).
 
 ## Sanity Checks
 
@@ -95,5 +95,5 @@ Start with UMAP. Only add SOM (via `minisom`) if grid-based topology view is nee
 
 ## Decisions Log
 
-- **UMAP split into separate notebook** (`02_umap_exploration.ipynb`) to keep main EDA notebook fast and lightweight. Three variants: all 14 features, 5 numeric only, per room type.
-- **EDA findings report** created as narrative notebook (`reports/eda-findings.ipynb`) with HTML export for Notion embedding. Source of truth for EDA conclusions.
+- **UMAP split into separate notebook** (`03-02_umap_exploration.ipynb`) to keep main EDA notebook fast and lightweight. Three variants: all 14 features, 5 numeric only, per room type.
+- **EDA findings report** created as narrative notebook (`reports/03-01_eda-findings.ipynb`) with HTML export for Notion embedding. Source of truth for EDA conclusions.

@@ -23,13 +23,27 @@ Training data: `../SpatialTimber_DesignExplorer/Furnisher/Apartment Quality Eval
 
 The surrogate predicts **per-room** scores, not per-apartment. Each room is an independent prediction.
 
+## Naming Convention
+
+Notebooks and reports are prefixed by phase number: `{phase}-{seq}_{name}`. This groups artifacts by phase and sorts them naturally.
+
+- **Notebooks:** `notebooks/{phase:02d}-{seq:02d}_{name}.ipynb` — e.g. `03-01_data_exploration.ipynb`, `03-02_umap_exploration.ipynb`
+- **Reports:** `reports/{phase:02d}-{seq:02d}_{name}.{ext}` — e.g. `03-01_eda-findings.ipynb`, `04-01_rasterization-verification.html`
+- **Plans:** `plans/{phase:02d}-{name}.md` — e.g. `plans/03-eda.md` (unchanged, already follows this pattern)
+
+- **Tickets:** `tickets/{ID:02d}_{slug}.md` — e.g. `tickets/00_notebook-numbering.md`, `tickets/01_non-orthogonal-rooms.md`
+
+When creating a new notebook, report, or ticket, use the next available sequence number.
+
 ## Status
 
-Phases 1–4 (Setup, Data Pipeline, EDA, Rasterization) complete. Phase 5 (Baseline Model) is next. See `PLAN.md` for progress (27/40 tasks).
+Phases 1–5 (Setup, Data Pipeline, EDA, Rasterization, Baseline Model) complete. Phase 6 (CNN Model) is next. See `PLAN.md` for progress (31/40 tasks).
 
 **Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
 
-**EDA findings** (see `reports/eda-findings.ipynb`): bimodal scores (28.6% fail at 0, 41.6% score >=90), area is strongest predictor (r=+0.37), door position has zero linear signal, naive MAE=37.48, inter-room correlation near zero (r=0.006). Children rooms cap at ~76. Vertex count strongly predicts score (8-vertex median=37 vs 4-vertex median=92).
+**EDA findings** (see `reports/03-01_eda-findings.ipynb`): bimodal scores (28.6% fail at 0, 41.6% score >=90), area is strongest predictor (r=+0.37), door position has zero linear signal, naive MAE=37.48, inter-room correlation near zero (r=0.006). Children rooms cap at ~76. Vertex count strongly predicts score (8-vertex median=37 vs 4-vertex median=92).
+
+**Baseline model** (LightGBM): Test MAE=11.02 (71% improvement over naive 37.48), R²=0.80. Area dominant feature by gain. Kitchen (16.89) and Living room (18.84) hardest — spatial layout matters. Model saved at `models/baseline_lgbm.joblib`. W&B run: `infau/furnisher-surrogate/runs/3t4hiefb`.
 
 ## Reports
 
@@ -37,8 +51,8 @@ Reports from completed phases live in `reports/`. Check these before starting ne
 
 | Report | Phase | Contents | Preview |
 |--------|-------|----------|---------|
-| `reports/eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/eda-findings.html) |
-| `reports/rasterization-verification.html` | 4 (Rasterization) | Visual verification, edge cases, fill ratio checks, dataset stats, UMAP | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/rasterization-verification.html) |
+| `reports/03-01_eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/03-01_eda-findings.html) |
+| `reports/04-01_rasterization-verification.html` | 4 (Rasterization) | Visual verification, edge cases, fill ratio checks, dataset stats, UMAP | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/04-01_rasterization-verification.html) |
 
 ## Notion
 
@@ -71,7 +85,7 @@ This project uses a strict "single source of truth" documentation strategy. When
 | `README.md` | Project description, data format, setup instructions | At milestones only |
 | `CLAUDE.md` (this file) | Current project state, conventions, key findings | End of each session |
 | `PLAN.md` | Strategy, checkboxes, decisions with rationale | As work progresses |
-| W&B | All experiment metrics, loss curves, model artifacts | Automatic during training |
+| W&B | All experiment metrics, loss curves, model artifacts (use `wandb.summary` for scalars, `wandb.Table` for breakdowns, `commit=False` to batch) | Automatic during training |
 | Notebooks | Self-contained analyses (EDA, training) | During analysis work |
 | `reports/` | Phase findings reports (narrative notebooks + HTML) | At phase completion |
 | Notion (WP2 + Tasks) | Project scope, high-level task status & descriptions | When documenting |
@@ -150,7 +164,7 @@ For pending tasks: state key open questions + carry forward relevant conclusions
 
 Lightweight backlog for features, bugs, and improvements noticed mid-session that should not interrupt current work. Template: `tickets/_TEMPLATE.md`.
 
-- **Naming:** `tickets/{slug}.md` — short kebab-case slug, e.g. `tickets/non-orthogonal-rooms.md`
+- **Naming:** `tickets/{ID}_{slug}.md` — sequential zero-padded ID + kebab-case slug, e.g. `tickets/01_non-orthogonal-rooms.md`
 - **When to create:** User says "ticket this", "note this for later", "park this", or you encounter a non-blocking issue during implementation
 - **When NOT to create:** If the issue blocks current work — fix it now instead
 - **Fields:** Type (feature/bug/improvement/tech-debt), Priority (low/medium/high), Status (open/in-progress/resolved), Phase link, Context, Description, Acceptance Criteria

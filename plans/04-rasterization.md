@@ -6,7 +6,7 @@
 
 Convert room polygons + door positions into 64x64 multi-channel images for CNN input.
 
-**Notebook**: `notebooks/03_rasterization.ipynb`
+**Notebook**: `notebooks/04-01_rasterization.ipynb`
 
 ## Tasks
 

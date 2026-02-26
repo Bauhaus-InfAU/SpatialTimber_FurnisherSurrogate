@@ -16,10 +16,10 @@ Surrogate model to predict furniture placement scores (0–100) for residential 
 | 2 | **Data Pipeline** | 5/5 | `done` | [details](plans/02-data-pipeline.md) |
 | 3 | **EDA** | 12/12 | `done` | [details](plans/03-eda.md) |
 | 4 | **Rasterization** | 4/4 | `done` | [details](plans/04-rasterization.md) |
-| 5 | **Baseline Model** | 0/4 | `pending` | [details](plans/05-baseline-model.md) |
+| 5 | **Baseline Model** | 4/4 | `done` | [details](plans/05-baseline-model.md) |
 | 6 | **CNN Model** | 0/5 | `pending` | [details](plans/06-cnn-model.md) |
 | 7 | **Grasshopper** | 0/4 | `pending` | [details](plans/07-grasshopper.md) |
-| | **Total** | **27/40** | | |
+| | **Total** | **31/40** | | |
 
 ## Documentation Strategy
 
@@ -65,8 +65,8 @@ SpatialTimber_FurnisherSurrogate/
 - [ ] Feature extraction produces valid values (no NaN, area > 0)
 - [ ] Rasterized images visually match original room shapes
 - [ ] Train/val/test split has no apartment leakage
-- [ ] W&B dashboard shows metrics and artifacts
-- [ ] Baseline MAE reported and reasonable
+- [x] W&B dashboard shows metrics and artifacts
+- [x] Baseline MAE reported and reasonable
 - [ ] CNN MAE improves over baseline (or we understand why not)
 - [ ] ONNX export matches PyTorch predictions
 - [ ] Grasshopper component returns predictions
