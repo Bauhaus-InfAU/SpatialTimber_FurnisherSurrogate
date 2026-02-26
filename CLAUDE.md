@@ -25,7 +25,7 @@ The surrogate predicts **per-room** scores, not per-apartment. Each room is an i
 
 ## Status
 
-Phases 1–3 (Setup, Data Pipeline, EDA) complete. Phase 4 (Rasterization) is next. See `PLAN.md` for progress (23/40 tasks).
+Phases 1–4 (Setup, Data Pipeline, EDA, Rasterization) complete. Phase 5 (Baseline Model) is next. See `PLAN.md` for progress (27/40 tasks).
 
 **Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
 
@@ -38,6 +38,7 @@ Reports from completed phases live in `reports/`. Check these before starting ne
 | Report | Phase | Contents | Preview |
 |--------|-------|----------|---------|
 | `reports/eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/eda-findings.html) |
+| `reports/rasterization-verification.html` | 4 (Rasterization) | Visual verification, edge cases, fill ratio checks, dataset stats, UMAP | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/rasterization-verification.html) |
 
 ## Notion
 

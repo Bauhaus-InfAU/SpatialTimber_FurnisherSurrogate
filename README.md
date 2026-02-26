@@ -90,10 +90,38 @@ Verify GPU access:
 uv run python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 ```
 
+## Rasterized Data
+
+Room polygons are converted into 64×64 3-channel images for CNN training. The pre-rasterized dataset is stored in `data/rooms_rasterized.npz` (gitignored — regenerate with `uv run python -m furnisher_surrogate.rasterize`).
+
+### Channels
+
+| Channel | Content |
+|---------|---------|
+| 0 | **Room mask** — 255 inside polygon, 0 outside |
+| 1 | **Wall edges** — 255 on polygon boundary (1px) |
+| 2 | **Door marker** — gaussian blob (sigma=2px) at door position |
+
+Each room's longest side is scaled to 60px and centered in the 64×64 grid. Absolute size is not preserved in the image — `area` is stored separately as a numeric feature.
+
+### `.npz` Contents
+
+| Array | Shape | Dtype | Description |
+|-------|-------|-------|-------------|
+| `images` | `(45880, 3, 64, 64)` | `uint8` | Rasterized room images |
+| `scores` | `(45880,)` | `float32` | Ground-truth scores (0–100) |
+| `room_type_idx` | `(45880,)` | `int8` | Room type index (0–8) |
+| `area` | `(45880,)` | `float32` | Room area in m² |
+| `door_rel_x` | `(45880,)` | `float32` | Normalized door x position [0,1] |
+| `door_rel_y` | `(45880,)` | `float32` | Normalized door y position [0,1] |
+| `apartment_seeds` | `(45880,)` | `int64` | Apartment ID (for train/val/test split) |
+
+All arrays share the same row index. Format: `(N, C, H, W)` — PyTorch convention.
+
 ## Data Location
 
 Training data lives in the sibling repository:
 
 ```
-../SpatialTimber_FurnisherData/apartments.jsonl
+../SpatialTimber_DesignExplorer/Furnisher/Apartment Quality Evaluation/apartments.jsonl
 ```

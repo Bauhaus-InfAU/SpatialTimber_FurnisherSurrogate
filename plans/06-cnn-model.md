@@ -19,7 +19,7 @@ Train a CNN on rasterized room images. Compare against baseline.
 ## Architecture (`models.py`)
 
 ```
-Input: 3x64x64 image + room_type (int) + door_rel_x (float) + door_rel_y (float)
+Input: 3x64x64 image + room_type (int) + area (float) + door_rel_x (float) + door_rel_y (float)
 
 Conv block 1: Conv2d(3→32, 3, pad=1) → BN → ReLU → MaxPool(2)    → 32x32x32
 Conv block 2: Conv2d(32→64, 3, pad=1) → BN → ReLU → MaxPool(2)   → 64x16x16
@@ -27,8 +27,8 @@ Conv block 3: Conv2d(64→128, 3, pad=1) → BN → ReLU → MaxPool(2)  → 128
 Conv block 4: Conv2d(128→256, 3, pad=1) → BN → ReLU → MaxPool(2) → 256x4x4
 
 GlobalAvgPool → 256-dim vector
-Concat with room_type_embedding(9→16) + [door_rel_x, door_rel_y] → 274-dim
-FC(274→128) → ReLU → Dropout(0.3)
+Concat with room_type_embedding(9→16) + [area, door_rel_x, door_rel_y] → 275-dim
+FC(275→128) → ReLU → Dropout(0.3)
 FC(128→1) → output (predicted score)
 ```
 
@@ -88,4 +88,4 @@ Same metrics as baseline (MAE, RMSE, R², per-room-type MAE) on same test set fo
 
 ## Decisions Log
 
-*(Record decisions here as they're made)*
+- **Area added as numeric FC input** (decided during Phase 4 planning): Rasterization uses per-room normalization (longest side → 60px) to maximize shape detail, which discards absolute size. Since area is the strongest predictor (r=+0.37 from EDA), it's fed as a numeric scalar into the FC head alongside room_type and door position. This changes the concat from 274-dim to 275-dim.

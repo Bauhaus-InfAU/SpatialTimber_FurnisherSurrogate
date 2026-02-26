@@ -8,6 +8,7 @@ from .data import (
     load_apartments,
     load_rooms,
 )
+from .rasterize import IMG_SIZE, rasterize_room
 
 __all__ = [
     "ROOM_TYPES",
@@ -16,4 +17,6 @@ __all__ = [
     "Room",
     "load_apartments",
     "load_rooms",
+    "IMG_SIZE",
+    "rasterize_room",
 ]
