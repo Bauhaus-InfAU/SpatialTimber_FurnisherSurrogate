@@ -78,7 +78,9 @@ The model predicts per-room scores, not per-apartment. Each room is scored indep
 
 ## Setup
 
-Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/).
+
+### Full (training + analysis)
 
 ```bash
 uv sync                     # creates .venv, installs all deps (incl. PyTorch CUDA)
@@ -89,6 +91,17 @@ Verify GPU access:
 ```bash
 uv run python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 ```
+
+### Inference only (Grasshopper / Rhino 8)
+
+For running predictions without training dependencies:
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install git+https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate.git[inference]
+```
+
+See `grasshopper/README.md` for Rhino 8 setup details.
 
 ## Rasterized Data
 

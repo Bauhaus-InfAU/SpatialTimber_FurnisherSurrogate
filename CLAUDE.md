@@ -37,7 +37,7 @@ When creating a new notebook, report, or ticket, use the next available sequence
 
 ## Status
 
-Phases 1–6 (Setup, Data Pipeline, EDA, Rasterization, Baseline Model, CNN Model) complete. Phase 7 (Grasshopper) is next. See `PLAN.md` for progress (36/40 tasks).
+Phases 1–6 complete. Phase 7 (Grasshopper) in progress (6/8 tasks). See `PLAN.md` for progress (42/46 tasks).
 
 **Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
 
@@ -46,6 +46,8 @@ Phases 1–6 (Setup, Data Pipeline, EDA, Rasterization, Baseline Model, CNN Mode
 **Baseline model** (LightGBM): Test MAE=11.02 (71% improvement over naive 37.48), R²=0.80. Area dominant feature by gain. Kitchen (16.89) and Living room (18.84) hardest — spatial layout matters. Model saved at `models/baseline_lgbm.joblib`. W&B run: `infau/furnisher-surrogate/runs/3t4hiefb`.
 
 **CNN model** (Phase 6): Three versions trained (v1→v2→v3), MAE improved 17.90→12.40→11.23 but never beat baseline (11.02). Key finding: spatial image features provide negligible value beyond tabular features. Each improvement came from strengthening tabular branch, not from better image understanding. LightGBM remains production model for Phase 7. Best checkpoint at `models/cnn_v3.pt`. W&B runs: v1 `3wcevehy`, v2 `qutd7leh`, v3 `ld6iz2h4`.
+
+**Grasshopper integration** (Phase 7, in progress): `predict_score()` inference API created in `predict.py` — single function, handles rasterization + model loading + caching. Decoupled from sklearn via TYPE_CHECKING guard in `rasterize.py`. GhPython component is ~6 lines. Package has `[inference]` extra for lightweight install (numpy+Pillow+torch-cpu). 6 pytest tests passing. Remaining: `.gh` test file + end-to-end Rhino 8 verification.
 
 ## Reports
 

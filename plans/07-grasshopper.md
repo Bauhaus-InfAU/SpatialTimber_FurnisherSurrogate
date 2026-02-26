@@ -8,49 +8,68 @@ Deploy the best model as a Grasshopper component for interactive use in Rhino 8.
 
 ## Tasks
 
-- [ ] ONNX export for best model
-- [ ] `grasshopper/surrogate_predictor.py` — GhPython component
-- [ ] Install dependencies in Rhino 8's CPython
-- [ ] Test against procedural furnisher
+- [x] Decouple `rasterize.py` from `data.py` (TYPE_CHECKING guard + `rasterize_arrays()`)
+- [x] `src/furnisher_surrogate/predict.py` — inference API (`predict_score()`)
+- [x] Update packaging (`pyproject.toml`: `[inference]` extra, Python >=3.10)
+- [x] `grasshopper/surrogate_score.py` — GhPython component
+- [x] `grasshopper/README.md` — Rhino 8 setup instructions
+- [x] Test fixtures (`tests/fixtures/test_rooms.json`) + pytest suite (`tests/test_predict.py`)
+- [ ] `grasshopper/test_surrogate.gh` — predefined test rooms in Grasshopper
+- [ ] End-to-end test in Rhino 8 (install, load model, run component, compare scores)
 
-## Approach: ONNX Runtime
+## Approach: PyTorch CPU
 
-Export to ONNX, load with `onnxruntime` in Grasshopper. Preferred over PyTorch because:
-- `onnxruntime` is lightweight (~50MB vs ~2GB for torch)
-- CPU inference is fast enough (single room = microseconds)
-- No CUDA dependency in Rhino
+Use PyTorch (CPU-only, ~200MB) directly instead of ONNX export. Rationale:
+- Same `.pt` checkpoints from training — no export step
+- Model swap = replace one file, no re-export
+- Handles all architecture variants (v1/v2/v3) via checkpoint `config` dict
+- ONNX export is non-trivial for variable architecture (bottleneck, skip, n_tabular)
 
-## ONNX Export
+## Inference API (`predict.py`)
+
+Single entry point for all consumers (Grasshopper, scripts, tests):
 
 ```python
-# LightGBM → use native format or sklearn2onnx
-# CNN → torch.onnx.export
-torch.onnx.export(model, (dummy_image, dummy_type, dummy_door_x, dummy_door_y),
-                  "models/cnn_surrogate.onnx")
+from furnisher_surrogate.predict import predict_score
+
+score = predict_score(
+    polygon=np.array([[0,0], [4,0], [4,3], [0,3], [0,0]]),
+    door=np.array([2.0, 0.0]),
+    room_type="Bedroom",
+    model_path="models/cnn_v1.pt",  # optional
+)
 ```
 
-## GhPython Component (`surrogate_predictor.py`)
+**Internals:** Rasterizes polygon → 3x64x64 image, computes tabular features (area, door_rel), standardizes using checkpoint stats, runs inference, clamps to [0,100].
 
-Inputs:
-1. Room polygon (Rhino Polyline)
-2. Door point (Rhino Point3d)
-3. Room type (string)
+**Model resolution:** explicit `model_path` → `FURNISHER_MODEL_PATH` env var → latest `models/cnn_*.pt` → error with download instructions.
 
-Processing:
-1. Convert polygon to feature vector (tabular) or rasterized image (CNN)
-2. Run ONNX inference
+**Dependency chain:** `predict.py` imports only from `rasterize.py` (decoupled from `data.py` via TYPE_CHECKING) and `models.py` (torch only). No sklearn needed.
 
-Output:
-- Predicted score (float, 0–100)
+## GhPython Component (`grasshopper/surrogate_score.py`)
 
-## Rhino 8 Setup
+~6 lines: converts Rhino Polyline/Point3d → numpy arrays, calls `predict_score()`.
 
-Install into Rhino 8's CPython environment:
+## Packaging
+
+```toml
+[project.optional-dependencies]
+inference = ["numpy", "Pillow", "torch>=2.0.0"]
 ```
-pip install onnxruntime numpy
+
+Rhino 8 install:
 ```
-(via Rhino's Script Editor terminal)
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install git+https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate.git[inference]
+```
+
+## Test Suite
+
+7 fixture rooms from the test set covering diverse geometries (rect/L-shape/complex, high/zero/mid scores, 5 room types). Pytest verifies bit-exact match with expected scores.
 
 ## Decisions Log
 
-*(Record decisions here as they're made)*
+- **PyTorch over ONNX** (2026-02-26): ONNX export is fragile for this architecture (3 input tensors, optional bottleneck/skip branches, variable n_tabular). PyTorch CPU wheel is ~200MB (not 2GB as initially estimated). Model swap is trivial with PyTorch — just drop in a new `.pt` file.
+- **Python >=3.10** (2026-02-26): Lowered from >=3.12. Needed for `slots=True` in `data.py` dataclasses (3.10 feature). Inference code works on 3.9+ but full package needs 3.10.
+- **Model distribution via W&B Artifacts** (2026-02-26): `.pt` files are gitignored. Stored as W&B artifacts, downloadable via web UI or `wandb artifact get`.
+- **Decoupled rasterize.py** (2026-02-26): Moved `Room` import behind `TYPE_CHECKING` guard. Added `rasterize_arrays(polygon, door)` that accepts raw numpy arrays. Existing `rasterize_room(room)` delegates to it. This breaks the sklearn import chain for inference consumers.

@@ -21,8 +21,14 @@ try:
 except ImportError:
     pass
 
+try:
+    from .predict import predict_score
+except ImportError:
+    pass
+
 __all__ = [
     "IMG_SIZE",
+    "predict_score",
     "rasterize_arrays",
     "rasterize_room",
     "ROOM_TYPES",

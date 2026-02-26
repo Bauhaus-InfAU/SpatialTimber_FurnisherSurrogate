@@ -18,8 +18,8 @@ Surrogate model to predict furniture placement scores (0–100) for residential 
 | 4 | **Rasterization** | 4/4 | `done` | [details](plans/04-rasterization.md) |
 | 5 | **Baseline Model** | 4/4 | `done` | [details](plans/05-baseline-model.md) |
 | 6 | **CNN Model** | 5/5 | `done` | [details](plans/06-cnn-model.md) |
-| 7 | **Grasshopper** | 0/4 | `pending` | [details](plans/07-grasshopper.md) |
-| | **Total** | **36/40** | | |
+| 7 | **Grasshopper** | 6/8 | `in progress` | [details](plans/07-grasshopper.md) |
+| | **Total** | **42/46** | | |
 
 ## Documentation Strategy
 
@@ -68,5 +68,5 @@ SpatialTimber_FurnisherSurrogate/
 - [x] W&B dashboard shows metrics and artifacts
 - [x] Baseline MAE reported and reasonable
 - [x] CNN MAE improves over baseline (or we understand why not)
-- [ ] ONNX export matches PyTorch predictions
-- [ ] Grasshopper component returns predictions
+- [x] predict_score() API matches manual pipeline (bit-exact, 33 rooms verified)
+- [ ] Grasshopper component returns predictions in Rhino 8
