@@ -67,6 +67,12 @@ class RoomDataset(Dataset):
         self.door_rel_x = npz["door_rel_x"][idx]  # (N,) float32
         self.door_rel_y = npz["door_rel_y"][idx]  # (N,) float32
 
+        # apartment_type_idx: present in new NPZ files, fallback to 0 for old ones
+        if "apartment_type_idx" in npz:
+            self.apartment_type_idx = npz["apartment_type_idx"][idx]  # (N,) int8
+        else:
+            self.apartment_type_idx = np.zeros(len(idx), dtype=np.int8)
+
         # Standardize area
         if area_mean is None or area_std is None:
             self.area_mean = float(self.area.mean())
@@ -106,6 +112,7 @@ class RoomDataset(Dataset):
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
         image = torch.from_numpy(self.images[idx].astype(np.float32) / 255.0)
         room_type = torch.tensor(int(self.room_type_idx[idx]), dtype=torch.long)
+        apt_type = torch.tensor(int(self.apartment_type_idx[idx]), dtype=torch.long)
 
         area_std = (self.area[idx] - self.area_mean) / (self.area_std + 1e-8)
         tab_values = [area_std, self.door_rel_x[idx], self.door_rel_y[idx]]
@@ -131,6 +138,7 @@ class RoomDataset(Dataset):
         return {
             "image": image,
             "room_type_idx": room_type,
+            "apt_type_idx": apt_type,
             "tabular": tabular,
             "score": score,
         }
@@ -154,11 +162,14 @@ def train_one_epoch(
     for batch in loader:
         images = batch["image"].to(device)
         room_types = batch["room_type_idx"].to(device)
+        apt_types = batch.get("apt_type_idx")
+        if apt_types is not None:
+            apt_types = apt_types.to(device)
         tabular = batch["tabular"].to(device)
         scores = batch["score"].to(device)
 
         optimizer.zero_grad()
-        preds = model(images, room_types, tabular).squeeze(-1)
+        preds = model(images, room_types, tabular, apt_types).squeeze(-1)
         loss = criterion(preds, scores)
         loss.backward()
         optimizer.step()
@@ -182,9 +193,12 @@ def evaluate(
     for batch in loader:
         images = batch["image"].to(device)
         room_types = batch["room_type_idx"].to(device)
+        apt_types = batch.get("apt_type_idx")
+        if apt_types is not None:
+            apt_types = apt_types.to(device)
         tabular = batch["tabular"].to(device)
 
-        preds = model(images, room_types, tabular).squeeze(-1)
+        preds = model(images, room_types, tabular, apt_types).squeeze(-1)
         all_true.append(batch["score"].numpy())
         all_pred.append(preds.cpu().numpy())
         all_rt.append(batch["room_type_idx"].numpy())

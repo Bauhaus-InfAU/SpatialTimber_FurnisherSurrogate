@@ -36,6 +36,7 @@ wandb artifact get infau/furnisher-surrogate/cnn-v1:latest --root ./models
    - `polygon` — Polyline (room boundary)
    - `door` — Point3d (door position on wall)
    - `room_type` — String (one of: Bedroom, Living room, Bathroom, WC, Kitchen, Children 1–4)
+   - `apartment_type` — String (one of: Studio (bedroom), Studio (living), 1-Bedroom, 2-Bedroom, 3-Bedroom, 4-Bedroom, 5-Bedroom)
    - `model_path` — String (path to .pt file, optional if model is in default location)
 5. Output `score` is a float (0–100)
 

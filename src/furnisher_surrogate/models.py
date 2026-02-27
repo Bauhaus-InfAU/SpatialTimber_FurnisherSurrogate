@@ -33,6 +33,8 @@ class RoomCNN(nn.Module):
         image_bottleneck: int | None = None,
         tabular_hidden: int | None = None,
         tabular_skip: bool = False,
+        n_apt_types: int = 7,
+        apt_embed_dim: int = 4,
     ):
         super().__init__()
         self.n_room_types = n_room_types
@@ -41,6 +43,8 @@ class RoomCNN(nn.Module):
         self.channels = channels
         self.fc_hidden = fc_hidden
         self.dropout_rate = dropout
+        self.n_apt_types = n_apt_types
+        self.apt_embed_dim = apt_embed_dim
 
         # Image branch: 4 conv blocks
         layers = []
@@ -69,7 +73,11 @@ class RoomCNN(nn.Module):
 
         # Tabular branch
         self.room_embed = nn.Embedding(n_room_types, embed_dim)
-        tabular_raw_dim = embed_dim + n_tabular
+        if apt_embed_dim > 0:
+            self.apt_embed = nn.Embedding(n_apt_types, apt_embed_dim)
+        else:
+            self.apt_embed = None
+        tabular_raw_dim = embed_dim + apt_embed_dim + n_tabular
 
         # Optional tabular FC: strengthen tabular signal before merge
         if tabular_hidden is not None:
@@ -105,13 +113,15 @@ class RoomCNN(nn.Module):
         image: torch.Tensor,
         room_type_idx: torch.Tensor,
         tabular: torch.Tensor,
+        apt_type_idx: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Forward pass.
 
         Args:
             image: (B, 3, 64, 64) float32, pixel values in [0, 1]
             room_type_idx: (B,) int64, index into ROOM_TYPES
-            tabular: (B, 3) float32, [area_standardized, door_rel_x, door_rel_y]
+            tabular: (B, n_tabular) float32
+            apt_type_idx: (B,) int64, index into APT_TYPES. If None, uses 0.
 
         Returns:
             (B, 1) predicted score
@@ -124,8 +134,14 @@ class RoomCNN(nn.Module):
             x = self.image_fc(x)   # (B, bottleneck)
 
         # Tabular branch
-        emb = self.room_embed(room_type_idx)  # (B, 16)
-        tab_raw = torch.cat([emb, tabular], dim=1)  # (B, embed+n_tabular)
+        emb = self.room_embed(room_type_idx)  # (B, embed_dim)
+        if self.apt_embed is not None:
+            if apt_type_idx is None:
+                apt_type_idx = torch.zeros_like(room_type_idx)
+            apt_emb = self.apt_embed(apt_type_idx)  # (B, apt_embed_dim)
+            tab_raw = torch.cat([emb, apt_emb, tabular], dim=1)
+        else:
+            tab_raw = torch.cat([emb, tabular], dim=1)
         tab = self.tabular_fc(tab_raw) if self.tabular_fc is not None else tab_raw
 
         # Concat and predict

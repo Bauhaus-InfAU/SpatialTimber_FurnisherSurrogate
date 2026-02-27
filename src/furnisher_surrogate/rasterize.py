@@ -181,7 +181,7 @@ def precompute_dataset(
 ) -> np.ndarray:
     """Rasterize all rooms and optionally save to .npz.
 
-    Saved arrays: images, scores, room_type_idx, area,
+    Saved arrays: images, scores, room_type_idx, apartment_type_idx, area,
     door_rel_x, door_rel_y, apartment_seeds.
     """
     from tqdm import tqdm
@@ -193,6 +193,7 @@ def precompute_dataset(
     images = np.empty((n, 3, IMG_SIZE, IMG_SIZE), dtype=np.uint8)
     scores = np.empty(n, dtype=np.float32)
     room_type_idx = np.empty(n, dtype=np.int8)
+    apartment_type_idx = np.empty(n, dtype=np.int8)
     areas = np.empty(n, dtype=np.float32)
     door_rel_x = np.empty(n, dtype=np.float32)
     door_rel_y = np.empty(n, dtype=np.float32)
@@ -202,6 +203,7 @@ def precompute_dataset(
         images[i] = rasterize_room(room)
         scores[i] = room.score if room.score is not None else -1.0
         room_type_idx[i] = room.room_type_idx
+        apartment_type_idx[i] = room.apartment_type_idx if room.apartment_type_idx is not None else -1
         areas[i] = compute_area(room)
         dx, dy = door_rel_position(room)
         door_rel_x[i] = dx
@@ -214,6 +216,7 @@ def precompute_dataset(
             images=images,
             scores=scores,
             room_type_idx=room_type_idx,
+            apartment_type_idx=apartment_type_idx,
             area=areas,
             door_rel_x=door_rel_x,
             door_rel_y=door_rel_y,

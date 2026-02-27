@@ -11,7 +11,7 @@ Before starting, confirm these are in place:
 - The `furnisher_surrogate` Python package is published at `https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate`
 - Trained model checkpoint (`.pt` file) available on W&B at `infau/furnisher-surrogate`
 
-All inference code (`predict.py`, `rasterize.py`, `models.py`) and the GhPython component script (`surrogate_score.py`) are already written and tested via pytest (7 fixture rooms, 6 test cases, all passing).
+All inference code (`predict.py`, `rasterize.py`, `models.py`) and the GhPython component script (`surrogate_score.py`) are already written and tested via pytest (7 fixture rooms, 7 test cases, all passing).
 
 ---
 
@@ -28,10 +28,10 @@ pip install torch --index-url https://download.pytorch.org/whl/cpu
 This installs PyTorch CPU-only (~200 MB). Must be done separately because it uses a special index URL.
 
 ```
-pip install git+https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate.git
+pip install "git+https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate.git[inference]"
 ```
 
-This installs the `furnisher_surrogate` package along with its inference dependencies (numpy, Pillow).
+This installs the `furnisher_surrogate` package with the `[inference]` extra (numpy, Pillow). The quotes are needed because of the brackets.
 
 **Verify the installation:**
 
@@ -48,18 +48,24 @@ If this prints `OK` without errors, the package is installed correctly.
 
 The `.pt` checkpoint files are stored as W&B Artifacts (not in the git repo).
 
+### Available models
+
+| Model | Features | Test MAE | Recommended? |
+|-------|----------|----------|-------------|
+| `cnn_v4.pt` | geometry + room type + apartment type | 8.07 | **Yes** — best accuracy |
+| `cnn_v1.pt` | geometry + room type only | 17.90 | For verification only (test room expected scores use v1) |
+
 ### Option A: Web UI
 
 1. Go to [wandb.ai/infau/furnisher-surrogate](https://wandb.ai/infau/furnisher-surrogate)
 2. Click **Artifacts** in the left sidebar
-3. Find the latest `cnn-*` model artifact (e.g., `cnn-v1:latest`)
-4. Download the `.pt` file
-5. Place it in a known location, e.g., `C:\Models\cnn_v1.pt`
+3. Download the desired model (e.g., `cnn_v4.pt` for production, `cnn_v1.pt` for verification)
+4. Place it in a known location, e.g., `C:\Models\cnn_v4.pt`
 
 ### Option B: CLI (if wandb is installed)
 
 ```
-wandb artifact get infau/furnisher-surrogate/cnn-v1:latest --root C:\Models
+wandb artifact get infau/furnisher-surrogate/cnn-v4:latest --root C:\Models
 ```
 
 Remember the full path — you will need it in Step 4.
@@ -83,6 +89,9 @@ Inputs (set in Grasshopper component):
     door    : Point3d   — door position on wall
     room_type : str     — one of: Bedroom, Living room, Bathroom, WC,
                           Kitchen, Children 1-4
+    apartment_type : str — one of: Studio (bedroom), Studio (living),
+                           1-Bedroom, 2-Bedroom, 3-Bedroom, 4-Bedroom,
+                           5-Bedroom
     model_path : str    — (optional) path to .pt checkpoint
 
 Output:
@@ -107,10 +116,13 @@ if not np.allclose(poly_np[0], poly_np[-1]):
 door_np = np.array([door.X, door.Y], dtype=np.float64)
 
 # Predict
-if model_path:
-    score = predict_score(poly_np, door_np, room_type, model_path=model_path)
-else:
-    score = predict_score(poly_np, door_np, room_type)
+score = predict_score(
+    poly_np,
+    door_np,
+    room_type,
+    apartment_type=apartment_type if apartment_type else None,
+    model_path=model_path if model_path else None,
+)
 ```
 
 5. **Set up the component inputs** (right-click each input → Rename / Type Hint):
@@ -120,7 +132,8 @@ else:
 | 1st | `polygon` | Polyline | Room boundary (closed polyline, in meters) |
 | 2nd | `door` | Point3d | Door position (point on wall, in meters) |
 | 3rd | `room_type` | str | Room type name (see list below) |
-| 4th | `model_path` | str | Full path to `.pt` file (optional) |
+| 4th | `apartment_type` | str | Apartment type name (see list below, optional — defaults to "2-Bedroom") |
+| 5th | `model_path` | str | Full path to `.pt` file (optional) |
 
 6. **Set up the output:**
 
@@ -142,6 +155,20 @@ Children 3
 Children 4
 ```
 
+### Valid apartment types
+
+```
+Studio (bedroom)
+Studio (living)
+1-Bedroom
+2-Bedroom
+3-Bedroom
+4-Bedroom
+5-Bedroom
+```
+
+If `apartment_type` is left empty, the model defaults to "2-Bedroom" (the most common type).
+
 ---
 
 ## Step 4: Wire Up Test Rooms
@@ -150,8 +177,11 @@ Create the following test rooms in Grasshopper to verify the component works. Fo
 - Draw the **Polyline** with exact vertex coordinates (in meters)
 - Place a **Point** at the door position
 - Connect a **Value List** or **Panel** with the room type string
+- Leave **apartment_type** empty (defaults to "2-Bedroom") — the expected scores below assume this default
 - Connect the **model_path** (Panel with the full path to your `.pt` file)
 - Read the **score** output
+
+> **Note:** The expected scores below are for `cnn_v1.pt`, which does not use apartment type. If you use `cnn_v4.pt` or later, scores will differ because those models incorporate apartment type. To verify against the expected values, use `cnn_v1.pt`.
 
 ### Room 1: rect_high_bedroom
 
@@ -334,6 +364,8 @@ For reference, the actual procedural furnisher scores for these rooms are:
 
 The surrogate is an approximation — it will not match the procedural furnisher exactly. The purpose of this comparison is to confirm the model produces reasonable scores in the right ballpark, not bit-exact matches.
 
+**Note:** These comparison scores are for `cnn_v1`. The production model (`cnn_v4`) uses apartment type context and will produce different (generally more accurate) scores, especially for Living room and Kitchen.
+
 ---
 
 ## Troubleshooting
@@ -342,9 +374,9 @@ The surrogate is an approximation — it will not match the procedural furnisher
 |---------|-------------|-----|
 | `ModuleNotFoundError: furnisher_surrogate` | Package not installed in Rhino's Python | Re-run `pip install` commands from Step 1 in Rhino Script Editor Terminal |
 | `ModuleNotFoundError: torch` | PyTorch not installed or wrong index | Re-run `pip install torch --index-url https://download.pytorch.org/whl/cpu` |
-| `FileNotFoundError: No model found` | `.pt` file not at expected path | Set the `model_path` input to the full path of your `.pt` file (e.g., `C:\Models\cnn_v1.pt`) |
+| `FileNotFoundError: No model found` | `.pt` file not at expected path | Set the `model_path` input to the full path of your `.pt` file (e.g., `C:\Models\cnn_v4.pt`) |
 | Score = 0 for all rooms | Coordinates in millimeters instead of meters | All coordinates must be in **meters**. If your Rhino model is in mm, divide by 1000. |
-| Score differs from expected by > 0.01 | Wrong model file or corrupted download | Re-download the `.pt` file from W&B. Ensure you are using `cnn_v1.pt` (expected scores above are for v1). |
+| Score differs from expected by > 0.01 | Wrong model file or corrupted download | The expected test scores in Step 4 are for `cnn_v1.pt`. If using `cnn_v4.pt`, scores will differ — that's expected. To verify bit-exact, use `cnn_v1.pt`. |
 | Very slow first prediction (~5-10 sec) | Model loading on first call | Normal — the model is cached after the first call. Subsequent predictions are fast (~100-200 ms). |
 
 ---
@@ -353,11 +385,11 @@ The surrogate is an approximation — it will not match the procedural furnisher
 
 To use a newer or different model:
 
-1. Download the new `.pt` file from W&B (e.g., `cnn_v2.pt`, `cnn_v3.pt`)
+1. Download the new `.pt` file from W&B (e.g., `cnn_v3.pt`, `cnn_v4.pt`)
 2. Place it in your models folder
 3. Update the `model_path` input on the GhPython component to point to the new file
 4. Re-run — the component will load the new model automatically
 
-No code changes are needed. Each `.pt` checkpoint contains all architecture parameters and normalization statistics, so the inference code reconstructs the correct model variant on the fly.
+No code changes are needed. Each `.pt` checkpoint contains all architecture parameters and normalization statistics, so the inference code reconstructs the correct model variant (v1–v4) on the fly. Older checkpoints (v1–v3) that lack apartment type support will simply ignore the `apartment_type` input.
 
 **If `model_path` is left empty**, the code searches for the latest `cnn_*.pt` file in the `models/` directory relative to the installed package location. For most Grasshopper setups, it is simpler to always provide an explicit path.

@@ -7800,9 +7800,8 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Phase-6:-CNN-Model-%E2%80%94-Findings-Report">Phase 6: CNN Model — Findings Report<a class="anchor-link" href="#Phase-6:-CNN-Model-%E2%80%94-Findings-Report">¶</a></h1><p><strong>Summary:</strong> Three CNN versions were trained on 3×64×64 rasterized room images with tabular side-inputs, progressively improving from MAE 17.90 (v1) to 12.40 (v2) to 11.23 (v3). The key finding: the CNN only approached the LightGBM baseline (MAE 11.02) by <em>weakening</em> the image branch (bottleneck 256→64) and <em>strengthening</em> the tabular branch (skip connection, adding <code>n_vertices</code> + <code>aspect_ratio</code>). Spatial image information provides negligible predictive value beyond tabular features for this dataset. LightGBM remains the production model for Phase 7 (Grasshopper deployment).</p>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Phase-6:-CNN-Model-%E2%80%94-Findings-Report">Phase 6: CNN Model — Findings Report<a class="anchor-link" href="#Phase-6:-CNN-Model-%E2%80%94-Findings-Report">¶</a></h1><p><strong>Summary:</strong> Four CNN versions were trained on 3x64x64 rasterized room images with tabular side-inputs, progressively improving from MAE 17.90 (v1) to 8.07 (v4). The key finding: each improvement came from strengthening the tabular branch — not from better image understanding. Adding apartment type as a feature (v4) gave the largest single improvement (11.23→8.07), and CNN v4 now slightly beats LightGBM with the same features (MAE 8.24). However, the difference is small (0.17 MAE) — LightGBM remains the production model for Grasshopper deployment due to simplicity (no PyTorch inference overhead).</p>
 </div>
 </div>
 </div>
@@ -7811,15 +7810,14 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="1.-Architecture-Evolution">1. Architecture Evolution<a class="anchor-link" href="#1.-Architecture-Evolution">¶</a></h2><table>
 <thead>
 <tr>
 <th>Version</th>
 <th>Architecture Changes</th>
 <th>Test MAE</th>
-<th>vs Baseline</th>
+<th>vs Baseline (14f)</th>
 <th>W&amp;B Run</th>
 </tr>
 </thead>
@@ -7846,11 +7844,25 @@ a.anchor-link {
 <td><a href="https://wandb.ai/infau/furnisher-surrogate/runs/ld6iz2h4"><code>ld6iz2h4</code></a></td>
 </tr>
 <tr>
-<td><strong>Baseline</strong></td>
+<td><strong>v4</strong></td>
+<td>+<code>apartment_type</code> embedding (4-dim for 7 types)</td>
+<td>8.07</td>
+<td>−2.95</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Baseline (14f)</strong></td>
 <td>LightGBM on 14 tabular features</td>
 <td>11.02</td>
 <td>—</td>
 <td><a href="https://wandb.ai/infau/furnisher-surrogate/runs/3t4hiefb"><code>3t4hiefb</code></a></td>
+</tr>
+<tr>
+<td><strong>Baseline (21f)</strong></td>
+<td>LightGBM on 21 features (+apartment_type one-hot)</td>
+<td>8.24</td>
+<td>—</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
@@ -7858,6 +7870,7 @@ a.anchor-link {
 <ul>
 <li><strong>v1→v2 (−5.50 MAE):</strong> Bottleneck compressed image features from 256→64 dims, tabular FC added (19→32 dims). The model could no longer rely on the noisy image branch and was forced to extract more from tabular features.</li>
 <li><strong>v2→v3 (−1.17 MAE):</strong> Adding <code>n_vertices</code> and <code>aspect_ratio</code> as tabular scalars (features the baseline already had) plus a skip connection letting tabular features bypass the image branch entirely.</li>
+<li><strong>v3→v4 (−3.16 MAE):</strong> Adding <code>apartment_type</code> as a 4-dim learned embedding. This was the largest single-version improvement, confirming that apartment context carries substantial predictive signal — especially for Living room and Kitchen (see <a href="03-03_apartment_type_eda.ipynb">apartment type EDA</a>).</li>
 </ul>
 </div>
 </div>
@@ -7867,10 +7880,10 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="2.-Key-Finding">2. Key Finding<a class="anchor-link" href="#2.-Key-Finding">¶</a></h2><p>The CNN only approached baseline performance when the image branch was <em>weakened</em> and the tabular branch was <em>strengthened</em>. The spatial image information (room shape and door position rendered as pixels) adds <strong>negligible predictive value</strong> beyond what tabular features already capture.</p>
-<p>This is a meaningful negative result: it tells us that for this furnisher algorithm, room score is driven almost entirely by a handful of scalar features (area, vertex count, room type, aspect ratio) rather than by fine-grained spatial layout.</p>
+<p>Adding <code>apartment_type</code> improved both models substantially (CNN v3→v4: −28%, Baseline 14f→21f: −25%). CNN v4 now slightly beats LightGBM 21f (8.07 vs 8.24), but the 0.17 MAE difference is small. The improvement came entirely from new tabular signal (apartment type embedding), not from spatial features.</p>
+<p>This is a meaningful result: it tells us that for this furnisher algorithm, room score is driven almost entirely by a handful of scalar features (area, vertex count, room type, apartment type, aspect ratio). Fine-grained spatial layout contributes minimally.</p>
 </div>
 </div>
 </div>
@@ -7879,9 +7892,8 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="3.-Per-Room-Type-Comparison-(v3-vs-Baseline)">3. Per-Room-Type Comparison (v3 vs Baseline)<a class="anchor-link" href="#3.-Per-Room-Type-Comparison-(v3-vs-Baseline)">¶</a></h2><table>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="3.-Per-Room-Type-Comparison-(v3-vs-Baseline-14f)">3. Per-Room-Type Comparison (v3 vs Baseline 14f)<a class="anchor-link" href="#3.-Per-Room-Type-Comparison-(v3-vs-Baseline-14f)">¶</a></h2><table>
 <thead>
 <tr>
 <th>Room Type</th>
@@ -7969,6 +7981,32 @@ a.anchor-link {
 </table>
 <p>CNN v3 beats the baseline on Bedroom, Living room, Kitchen, and Children 1 — these are the room types where spatial layout <em>might</em> add value. But the improvements are marginal (&lt; 1 point), while the regressions on WC (+1.97) and Bathroom (+0.67) offset them.</p>
 <p><strong>Overall v3</strong>: MAE=11.23, RMSE=19.18, R²=0.80, Fail/Pass accuracy=0.87.</p>
+<h3 id="Impact-of-apartment_type-(v4-+-Baseline-21f)">Impact of apartment_type (v4 + Baseline 21f)<a class="anchor-link" href="#Impact-of-apartment_type-(v4-+-Baseline-21f)">¶</a></h3><p>Adding apartment type dramatically improved the two hardest room types:</p>
+<table>
+<thead>
+<tr>
+<th>Room Type</th>
+<th>Baseline 14f MAE</th>
+<th>Baseline 21f MAE</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kitchen</td>
+<td>16.89</td>
+<td>11.14</td>
+<td>−34%</td>
+</tr>
+<tr>
+<td>Living room</td>
+<td>18.84</td>
+<td>8.39</td>
+<td>−55%</td>
+</tr>
+</tbody>
+</table>
+<p>This is consistent with the EDA finding that apartment type has a large effect on Living room (eta-sq=0.19) and medium effect on Kitchen (eta-sq=0.11). The furnisher assigns different furniture depending on apartment context, and this directly affects scores for these room types.</p>
 </div>
 </div>
 </div>
@@ -7977,8 +8015,7 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="4.-Why-CNN-Doesn't-Beat-Baseline">4. Why CNN Doesn't Beat Baseline<a class="anchor-link" href="#4.-Why-CNN-Doesn't-Beat-Baseline">¶</a></h2><p>Several factors explain why image features fail to add value:</p>
 <ol>
 <li><p><strong>Score is driven by tabular features.</strong> Area (r=+0.37), vertex count, and room type together explain most of the variance. These are all scalar features that tree ensembles handle natively.</p>
@@ -8000,8 +8037,7 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="5.-Potential-Improvements-(Future-Reference)">5. Potential Improvements (Future Reference)<a class="anchor-link" href="#5.-Potential-Improvements-(Future-Reference)">¶</a></h2><p>If spatial features are revisited in future work, these directions could help:</p>
 <ul>
 <li><strong>Higher resolution</strong> (128×128 or 256×256): May preserve door-wall relationships better</li>
@@ -8019,8 +8055,7 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h2 id="6.-Model-Artifacts">6. Model Artifacts<a class="anchor-link" href="#6.-Model-Artifacts">¶</a></h2><table>
 <thead>
 <tr>
@@ -8031,9 +8066,14 @@ a.anchor-link {
 </thead>
 <tbody>
 <tr>
+<td>CNN v4 checkpoint</td>
+<td><code>models/cnn_v4.pt</code></td>
+<td>v3 architecture + apt_type embedding (4-dim), normalization stats, test MAE=8.07</td>
+</tr>
+<tr>
 <td>CNN v3 checkpoint</td>
 <td><code>models/cnn_v3.pt</code></td>
-<td><code>model_state_dict</code>, <code>config</code>, normalization stats (<code>area_mean/std</code>, <code>n_verts_mean/std</code>, <code>aspect_mean/std</code>), <code>epoch</code>, <code>val_mae</code>, <code>test_mae</code></td>
+<td><code>model_state_dict</code>, <code>config</code>, normalization stats, <code>epoch</code>, <code>val_mae</code>, <code>test_mae</code></td>
 </tr>
 <tr>
 <td>CNN v1 checkpoint</td>
@@ -8041,9 +8081,9 @@ a.anchor-link {
 <td>v1 architecture weights (kept for comparison)</td>
 </tr>
 <tr>
-<td>Baseline model</td>
+<td>Baseline model (21f)</td>
 <td><code>models/baseline_lgbm.joblib</code></td>
-<td>LightGBM production model</td>
+<td>LightGBM production model with apartment_type, test MAE=8.24</td>
 </tr>
 </tbody>
 </table>
@@ -8072,7 +8112,7 @@ a.anchor-link {
 <td><a href="https://wandb.ai/infau/furnisher-surrogate/runs/ld6iz2h4">wandb.ai</a></td>
 </tr>
 <tr>
-<td>Baseline</td>
+<td>Baseline (14f)</td>
 <td><code>3t4hiefb</code></td>
 <td><a href="https://wandb.ai/infau/furnisher-surrogate/runs/3t4hiefb">wandb.ai</a></td>
 </tr>
@@ -8086,9 +8126,93 @@ a.anchor-link {
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="7.-Conclusion">7. Conclusion<a class="anchor-link" href="#7.-Conclusion">¶</a></h2><p><strong>CNN at best matches LightGBM; spatial image features provide negligible improvement over tabular features.</strong> LightGBM (MAE 11.02) remains the production model for Phase 7 Grasshopper deployment. The CNN work confirms that the furnisher scoring function is dominated by scalar room properties, not fine-grained spatial layout. This is a useful finding that simplifies the deployment architecture — no GPU inference needed in Grasshopper.</p>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="7.-Conclusion">7. Conclusion<a class="anchor-link" href="#7.-Conclusion">¶</a></h2><p><strong>CNN v4 slightly beats LightGBM 21f (8.07 vs 8.24), but the difference is small.</strong> LightGBM remains the production model for Grasshopper deployment — simpler, faster, no PyTorch inference overhead.</p>
+<p>The pattern across all four CNN versions is clear: every improvement came from strengthening the tabular branch (bottleneck, skip connections, geometry features, apartment type), never from extracting better spatial information from images. The furnisher scoring function is dominated by scalar room properties and apartment context, not fine-grained spatial layout.</p>
+<h3 id="Per-room-type:-CNN-v4-vs-Baseline-21f">Per-room-type: CNN v4 vs Baseline 21f<a class="anchor-link" href="#Per-room-type:-CNN-v4-vs-Baseline-21f">¶</a></h3><table>
+<thead>
+<tr>
+<th>Room Type</th>
+<th>n</th>
+<th>Baseline 21f</th>
+<th>CNN v4</th>
+<th>Delta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bedroom</td>
+<td>744</td>
+<td>10.29</td>
+<td><strong>9.03</strong></td>
+<td>−1.26</td>
+</tr>
+<tr>
+<td>Living room</td>
+<td>750</td>
+<td><strong>8.39</strong></td>
+<td>8.08</td>
+<td>−0.31</td>
+</tr>
+<tr>
+<td>Bathroom</td>
+<td>833</td>
+<td><strong>3.40</strong></td>
+<td>3.49</td>
+<td>+0.09</td>
+</tr>
+<tr>
+<td>WC</td>
+<td>429</td>
+<td><strong>10.70</strong></td>
+<td>13.24</td>
+<td>+2.54</td>
+</tr>
+<tr>
+<td>Kitchen</td>
+<td>833</td>
+<td>11.14</td>
+<td><strong>9.87</strong></td>
+<td>−1.27</td>
+</tr>
+<tr>
+<td>Children 1</td>
+<td>494</td>
+<td>6.51</td>
+<td><strong>6.49</strong></td>
+<td>−0.02</td>
+</tr>
+<tr>
+<td>Children 2</td>
+<td>286</td>
+<td>7.15</td>
+<td><strong>7.11</strong></td>
+<td>−0.04</td>
+</tr>
+<tr>
+<td>Children 3</td>
+<td>162</td>
+<td><strong>8.86</strong></td>
+<td>10.57</td>
+<td>+1.71</td>
+</tr>
+<tr>
+<td>Children 4</td>
+<td>63</td>
+<td><strong>8.01</strong></td>
+<td>8.55</td>
+<td>+0.54</td>
+</tr>
+<tr>
+<td><strong>Overall</strong></td>
+<td><strong>4594</strong></td>
+<td><strong>8.24</strong></td>
+<td><strong>8.07</strong></td>
+<td><strong>−0.17</strong></td>
+</tr>
+</tbody>
+</table>
+<p>CNN v4 wins on 6/9 room types. The WC regression (+2.54) is consistent across all CNN versions — the CNN struggles with binary-score room types where tree-based splitting excels.</p>
 </div>
 </div>
 </div>

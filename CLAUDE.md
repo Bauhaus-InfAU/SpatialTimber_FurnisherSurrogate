@@ -15,6 +15,7 @@ Training data: `../SpatialTimber_DesignExplorer/Furnisher/Apartment Quality Eval
 ## Domain Concepts
 
 - **Room types:** Bedroom, Living room, Bathroom, WC, Kitchen, Children 1–4
+- **Apartment types:** Studio (bedroom), Studio (living), 1-Bedroom, 2-Bedroom, 3-Bedroom, 4-Bedroom, 5-Bedroom
 - **Score (0–100):** furniture placement quality — 90+ excellent, 70–89 good, 40–69 problematic, <40 poor, 0 failed, null = room absent
 - **Polygon format:** closed polyline in meters, axis-aligned, counter-clockwise winding order
 - **Door:** position as a point on the room's wall
@@ -37,17 +38,19 @@ When creating a new notebook, report, or ticket, use the next available sequence
 
 ## Status
 
-Phases 1–6 complete. Phase 7 (Grasshopper) in progress (6/8 tasks). See `PLAN.md` for progress (42/46 tasks).
+Phases 1–6 complete. Phase 7 (Grasshopper) in progress (7/9 tasks). See `PLAN.md` for progress (46/48 tasks).
 
-**Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. Frozen `Room`/`Apartment` dataclasses, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 14 features (5 numeric + 9 one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
+**Data pipeline**: `data.py` loads 8,322 apartments / 45,880 active rooms via `load_apartments()`. 7 apartment types: Studio (bedroom), Studio (living), 1-Bedroom through 5-Bedroom. Frozen `Room`/`Apartment` dataclasses with `apartment_type_idx` field, SHA-256 integrity manifest, apartment-level stratified split (80/10/10). `features.py` extracts 21 features (5 numeric + 9 room_type one-hot + 7 apt_type one-hot), pure numpy. No processed-data caching — JSONL re-parsed each call (~2-3 sec).
 
 **EDA findings** (see `reports/03-01_eda-findings.ipynb`): bimodal scores (28.6% fail at 0, 41.6% score >=90), area is strongest predictor (r=+0.37), door position has zero linear signal, naive MAE=37.48, inter-room correlation near zero (r=0.006). Children rooms cap at ~76. Vertex count strongly predicts score (8-vertex median=37 vs 4-vertex median=92).
 
-**Baseline model** (LightGBM): Test MAE=11.02 (71% improvement over naive 37.48), R²=0.80. Area dominant feature by gain. Kitchen (16.89) and Living room (18.84) hardest — spatial layout matters. Model saved at `models/baseline_lgbm.joblib`. W&B run: `infau/furnisher-surrogate/runs/3t4hiefb`.
+**Apartment type EDA** (see `reports/03-03_apartment_type_eda.ipynb`): Living room has large effect (eta-sq=0.19, +56 pt median delta), Kitchen medium effect (eta-sq=0.11, +25 pt delta). 35% of geometry-matched groups show significant differences. Kitchen failure rate doubles from 23% (small apts) to 49% (large apts). Living room failure: 0% (Studio) to 31% (5-Bedroom).
 
-**CNN model** (Phase 6): Three versions trained (v1→v2→v3), MAE improved 17.90→12.40→11.23 but never beat baseline (11.02). Key finding: spatial image features provide negligible value beyond tabular features. Each improvement came from strengthening tabular branch, not from better image understanding. LightGBM remains production model for Phase 7. Best checkpoint at `models/cnn_v3.pt`. W&B runs: v1 `3wcevehy`, v2 `qutd7leh`, v3 `ld6iz2h4`.
+**Baseline model** (LightGBM, 21 features): Test MAE=8.24 (78% improvement over naive 37.48, 25% improvement over 14-feature baseline), R²=0.89. Kitchen MAE: 11.14 (was 16.89), Living room: 8.39 (was 18.84). apt_type features rank 7th-10th by importance. Model saved at `models/baseline_lgbm.joblib`.
 
-**Grasshopper integration** (Phase 7, in progress): `predict_score()` inference API created in `predict.py` — single function, handles rasterization + model loading + caching. Decoupled from sklearn via TYPE_CHECKING guard in `rasterize.py`. GhPython component is ~6 lines. Package has `[inference]` extra for lightweight install (numpy+Pillow+torch-cpu). 6 pytest tests passing. Remaining: `.gh` test file + end-to-end Rhino 8 verification.
+**CNN model** (Phase 6): Four versions trained (v1→v2→v3→v4). v4 adds apt_type embedding (4-dim for 7 types). MAE: 17.90→12.40→11.23→8.07. CNN v4 slightly beats LightGBM 21f (8.07 vs 8.24) — wins 6/9 room types, loses on WC and Children 3. Difference is small; LightGBM remains production model for simplicity. Best checkpoint at `models/cnn_v4.pt`.
+
+**Grasshopper integration** (Phase 7, in progress): `predict_score()` inference API accepts `apartment_type` parameter (optional, defaults to "2-Bedroom"). Backward-compatible with pre-apt-type checkpoints (apt_embed_dim=0). GhPython component has `apartment_type` input pin. 7 pytest tests passing. Remaining: `.gh` test file + end-to-end Rhino 8 verification.
 
 ## Reports
 
@@ -56,8 +59,9 @@ Reports from completed phases live in `reports/`. Check these before starting ne
 | Report | Phase | Contents | Preview |
 |--------|-------|----------|---------|
 | `reports/03-01_eda-findings.ipynb` | 3 (EDA) | Score distributions, feature correlations, failure analysis, data boundaries | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/03-01_eda-findings.html) |
+| `reports/03-03_apartment_type_eda.ipynb` | 3 (EDA) | Apartment type effect on scores, Kruskal-Wallis tests, controlled comparison, failure rates | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/03-03_apartment_type_eda.html) |
 | `reports/04-01_rasterization-verification.html` | 4 (Rasterization) | Visual verification, edge cases, fill ratio checks, dataset stats, UMAP | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/04-01_rasterization-verification.html) |
-| `reports/06-01_cnn-model-comparison.ipynb` | 6 (CNN Model) | Architecture evolution v1→v3, baseline comparison, per-room-type analysis, negative result | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/06-01_cnn-model-comparison.html) |
+| `reports/06-01_cnn-model-comparison.ipynb` | 6 (CNN Model) | Architecture evolution v1→v4, baseline comparison, per-room-type analysis | [HTML](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/06-01_cnn-model-comparison.html) |
 
 ## Notion
 

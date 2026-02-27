@@ -14,6 +14,7 @@ Train a simple tabular model as sanity check. Answer: "Can you predict score fro
 - [x] Evaluate on validation set (MAE, RMSE, R², per-room-type MAE)
 - [x] Feature importance analysis
 - [x] Establish performance floor (record baseline MAE in Decisions Log)
+- [x] Retrain baseline with apartment_type feature (14→21 features)
 
 ## Model: LightGBM Regressor
 
@@ -86,3 +87,4 @@ Top 3: **area** (dominant), **n_vertices**, **room_type_Bathroom**. Door positio
 - **CV for n_estimators only**: 5-fold KFold CV (not StratifiedKFold — continuous target), early stopping patience=50. Found 457 optimal rounds. No grid search — baseline should be simple.
 - **Fail/pass threshold at 5**: Since LightGBM predicts continuous values, used threshold=5 for binary classification (fail vs pass). Accounts for regression imprecision near zero.
 - **Model saved as joblib**: `models/baseline_lgbm.joblib` (1.3 MB). Also uploaded as W&B artifact.
+- **apartment_type added as feature** (2026-02-27): 7 apartment types one-hot encoded (21 total features, was 14). EDA showed large effect for Living room (eta-sq=0.19, +56 pt median delta) and Kitchen (eta-sq=0.11, +25 pt delta). Test MAE improved from 11.02 to 8.24 (−25%). Kitchen MAE: 16.89→11.14, Living room: 18.84→8.39. apt_type features ranked 7th-10th by importance. Best iteration rose from 457 to 1370 (more signal to learn). Model retrained with same hyperparameters except n_estimators cap raised to 2000.

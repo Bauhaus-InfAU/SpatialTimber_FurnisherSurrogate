@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from furnisher_surrogate.predict import predict_score, _model_cache
+from furnisher_surrogate.predict import predict_score, _model_cache, APT_TYPES
 
 FIXTURES_PATH = Path(__file__).parent / "fixtures" / "test_rooms.json"
 MODEL_PATH = Path(__file__).parent.parent / "models" / "cnn_v1.pt"
@@ -56,6 +56,15 @@ def test_invalid_room_type():
 
     with pytest.raises(ValueError, match="Unknown room_type"):
         predict_score(polygon, door, "Garage")
+
+
+def test_invalid_apartment_type():
+    """Unknown apartment type raises ValueError."""
+    polygon = np.array([[0, 0], [4, 0], [4, 3], [0, 3], [0, 0]], dtype=np.float64)
+    door = np.array([2.0, 0.0], dtype=np.float64)
+
+    with pytest.raises(ValueError, match="Unknown apartment_type"):
+        predict_score(polygon, door, "Bedroom", apartment_type="Penthouse")
 
 
 @pytest.mark.skipif(not MODEL_PATH.exists(), reason="cnn_v1.pt not found")

@@ -6,6 +6,8 @@ from .rasterize import IMG_SIZE, rasterize_arrays, rasterize_room
 # lightweight inference environments (e.g. Grasshopper / Rhino 8).
 try:
     from .data import (
+        APT_TYPES,
+        APT_TYPE_TO_IDX,
         ROOM_TYPES,
         ROOM_TYPE_TO_IDX,
         Apartment,
@@ -27,6 +29,8 @@ except ImportError:
     pass
 
 __all__ = [
+    "APT_TYPES",
+    "APT_TYPE_TO_IDX",
     "IMG_SIZE",
     "predict_score",
     "rasterize_arrays",

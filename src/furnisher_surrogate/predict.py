@@ -31,6 +31,18 @@ ROOM_TYPES: list[str] = [
 
 ROOM_TYPE_TO_IDX: dict[str, int] = {rt: i for i, rt in enumerate(ROOM_TYPES)}
 
+APT_TYPES: list[str] = [
+    "Studio (bedroom)",
+    "Studio (living)",
+    "1-Bedroom",
+    "2-Bedroom",
+    "3-Bedroom",
+    "4-Bedroom",
+    "5-Bedroom",
+]
+
+APT_TYPE_TO_IDX: dict[str, int] = {at: i for i, at in enumerate(APT_TYPES)}
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -101,12 +113,21 @@ def _resolve_model_path(model_path: str | Path | None) -> Path:
 
 
 def _load_model(model_path: str | Path) -> tuple[RoomCNN, dict]:
-    """Load model from checkpoint, caching by path."""
+    """Load model from checkpoint, caching by path.
+
+    Handles backward compatibility with pre-apartment-type checkpoints
+    by detecting missing apt_embed keys and building the model with
+    apt_embed_dim=0 so no embedding layer is created.
+    """
     model_path = Path(model_path)
     key = str(model_path.resolve())
     if key not in _model_cache:
         ckpt = torch.load(model_path, map_location="cpu", weights_only=True)
         cfg = ckpt.get("config", {})
+
+        # Detect pre-apartment-type checkpoint
+        state_dict = ckpt["model_state_dict"]
+        has_apt_embed = any(k.startswith("apt_embed.") for k in state_dict)
 
         model = RoomCNN(
             n_room_types=cfg.get("n_room_types", 9),
@@ -118,8 +139,10 @@ def _load_model(model_path: str | Path) -> tuple[RoomCNN, dict]:
             image_bottleneck=cfg.get("image_bottleneck"),
             tabular_hidden=cfg.get("tabular_hidden"),
             tabular_skip=cfg.get("tabular_skip", False),
+            n_apt_types=cfg.get("n_apt_types", 7) if has_apt_embed else 7,
+            apt_embed_dim=cfg.get("apt_embed_dim", 4) if has_apt_embed else 0,
         )
-        model.load_state_dict(ckpt["model_state_dict"])
+        model.load_state_dict(state_dict, strict=has_apt_embed)
         model.eval()
         _model_cache[key] = (model, ckpt)
 
@@ -133,6 +156,7 @@ def predict_score(
     polygon: np.ndarray,
     door: np.ndarray,
     room_type: str,
+    apartment_type: str | None = None,
     model_path: str | Path | None = None,
 ) -> float:
     """Predict furniture placement score for a single room.
@@ -147,6 +171,10 @@ def predict_score(
     room_type : str
         One of: Bedroom, Living room, Bathroom, WC, Kitchen,
         Children 1, Children 2, Children 3, Children 4.
+    apartment_type : str, optional
+        One of: Studio (bedroom), Studio (living), 1-Bedroom, 2-Bedroom,
+        3-Bedroom, 4-Bedroom, 5-Bedroom. Defaults to "2-Bedroom" if not
+        provided (most common type).
     model_path : str or Path, optional
         Path to a .pt checkpoint. Defaults to latest model in models/.
 
@@ -158,7 +186,7 @@ def predict_score(
     Raises
     ------
     ValueError
-        If room_type is not one of the 9 known types.
+        If room_type or apartment_type is not one of the known types.
     """
     polygon = np.asarray(polygon, dtype=np.float64)
     door = np.asarray(door, dtype=np.float64)
@@ -173,6 +201,15 @@ def predict_score(
             f"Unknown room_type '{room_type}'. Must be one of: {ROOM_TYPES}"
         )
     room_type_idx = ROOM_TYPE_TO_IDX[room_type]
+
+    # Validate apartment type
+    if apartment_type is None:
+        apartment_type = "2-Bedroom"
+    if apartment_type not in APT_TYPE_TO_IDX:
+        raise ValueError(
+            f"Unknown apartment_type '{apartment_type}'. Must be one of: {APT_TYPES}"
+        )
+    apt_type_idx = APT_TYPE_TO_IDX[apartment_type]
 
     # Load model
     path = _resolve_model_path(model_path)
@@ -212,9 +249,10 @@ def predict_score(
 
     tabular_t = torch.tensor([tabular], dtype=torch.float32)
     room_type_t = torch.tensor([room_type_idx], dtype=torch.long)
+    apt_type_t = torch.tensor([apt_type_idx], dtype=torch.long)
 
     # Inference
     with torch.no_grad():
-        score = model(image_t, room_type_t, tabular_t).squeeze().item()
+        score = model(image_t, room_type_t, tabular_t, apt_type_t).squeeze().item()
 
     return float(np.clip(score, 0.0, 100.0))

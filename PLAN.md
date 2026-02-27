@@ -14,12 +14,12 @@ Surrogate model to predict furniture placement scores (0–100) for residential 
 |---|-------|-------|--------|------|
 | 1 | **Setup** | 6/6 | `done` | [details](plans/01-setup.md) |
 | 2 | **Data Pipeline** | 5/5 | `done` | [details](plans/02-data-pipeline.md) |
-| 3 | **EDA** | 12/12 | `done` | [details](plans/03-eda.md) |
+| 3 | **EDA** | 13/13 | `done` | [details](plans/03-eda.md) |
 | 4 | **Rasterization** | 4/4 | `done` | [details](plans/04-rasterization.md) |
-| 5 | **Baseline Model** | 4/4 | `done` | [details](plans/05-baseline-model.md) |
-| 6 | **CNN Model** | 5/5 | `done` | [details](plans/06-cnn-model.md) |
-| 7 | **Grasshopper** | 6/8 | `in progress` | [details](plans/07-grasshopper.md) |
-| | **Total** | **42/46** | | |
+| 5 | **Baseline Model** | 5/5 | `done` | [details](plans/05-baseline-model.md) |
+| 6 | **CNN Model** | 6/6 | `done` | [details](plans/06-cnn-model.md) |
+| 7 | **Grasshopper** | 7/9 | `in progress` | [details](plans/07-grasshopper.md) |
+| | **Total** | **46/48** | | |
 
 ## Documentation Strategy
 
@@ -49,24 +49,26 @@ SpatialTimber_FurnisherSurrogate/
 ├── notebooks/                     # Jupyter notebooks (analysis, exploration)
 ├── reports/                       # Findings reports (narrative notebooks + HTML)
 ├── grasshopper/                   # GhPython components
-├── models/                        # Saved artifacts (.pt, .joblib, .onnx)
+├── models/                        # Saved artifacts (.pt, .joblib)
+├── tests/                         # Pytest suite (fixtures, test_predict.py)
 └── tickets/                       # Deferred features, bugs, improvements
 ```
 
 ## Known Limitations
 
 1. **Axis-aligned rooms only** — current data is orthogonal. Real plans are often non-orthogonal. Future: new training data + vertex-level rotation augmentation. [details](plans/06-cnn-model.md#known-limitations)
-2. **Fixed 9 room types** — adding types requires retraining
+2. **Fixed 9 room types, 7 apartment types** — adding types requires retraining
 3. **Algorithm-specific** — approximates this furnisher's scoring, not objective quality
 
 ## Verification Checklist
 
-- [ ] Data loads correctly, all 45,880 active rooms parsed
-- [ ] Feature extraction produces valid values (no NaN, area > 0)
-- [ ] Rasterized images visually match original room shapes
-- [ ] Train/val/test split has no apartment leakage
+- [x] Data loads correctly, all 45,880 active rooms parsed
+- [x] Feature extraction produces valid values (no NaN, area > 0)
+- [x] Rasterized images visually match original room shapes
+- [x] Train/val/test split has no apartment leakage
 - [x] W&B dashboard shows metrics and artifacts
-- [x] Baseline MAE reported and reasonable
-- [x] CNN MAE improves over baseline (or we understand why not)
-- [x] predict_score() API matches manual pipeline (bit-exact, 33 rooms verified)
+- [x] Baseline MAE reported and reasonable (8.24 with apt_type, 11.02 without)
+- [x] CNN MAE improves over baseline (or we understand why not) — v4 slightly beats LightGBM (8.07 vs 8.24)
+- [x] predict_score() API matches manual pipeline (bit-exact, 7 fixture rooms verified)
+- [x] apartment_type added across full stack (data, features, models, inference, GH component)
 - [ ] Grasshopper component returns predictions in Rhino 8

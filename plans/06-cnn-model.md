@@ -15,24 +15,39 @@ Train a CNN on rasterized room images. Compare against baseline.
 - [x] Train CNN v1 with default hyperparameters
 - [x] Compare CNN vs baseline on same test set (MAE, RMSE, R², per-room-type MAE, scatter plots)
 - [x] Diagnostic tuning (v2: balanced branches, v3: +geometry+skip)
+- [x] Retrain CNN v4 with apartment_type embedding
 
 ## Architecture (`models.py`)
 
-```
-Input: 3x64x64 image + room_type (int) + area (float) + door_rel_x (float) + door_rel_y (float)
+Shared CNN backbone across all versions:
 
+```
 Conv block 1: Conv2d(3→32, 3, pad=1) → BN → ReLU → MaxPool(2)    → 32x32x32
 Conv block 2: Conv2d(32→64, 3, pad=1) → BN → ReLU → MaxPool(2)   → 64x16x16
 Conv block 3: Conv2d(64→128, 3, pad=1) → BN → ReLU → MaxPool(2)  → 128x8x8
 Conv block 4: Conv2d(128→256, 3, pad=1) → BN → ReLU → MaxPool(2) → 256x4x4
-
-GlobalAvgPool → 256-dim vector
-Concat with room_type_embedding(9→16) + [area, door_rel_x, door_rel_y] → 275-dim
-FC(275→128) → ReLU → Dropout(0.3)
-FC(128→1) → output (predicted score)
+GlobalAvgPool → 256-dim image vector
 ```
 
-~500k parameters. Fits comfortably on RTX 4060 (8GB).
+### Version configs
+
+Each version adds to the previous. The `config` dict is saved inside the `.pt` checkpoint so `predict.py` reconstructs the correct architecture automatically.
+
+| Parameter | v1 | v2 | v3 | v4 |
+|-----------|----|----|----|----|
+| `image_bottleneck` | — | 64 | 64 | 64 |
+| `tabular_hidden` | — | 32 | 32 | 32 |
+| `tabular_skip` | no | no | **yes** | yes |
+| `n_tabular` | 3 | 3 | **5** | 5 |
+| `apt_embed_dim` | — | — | — | **4** |
+| `n_apt_types` | — | — | — | **7** |
+| `fc_hidden` | 128 | 64 | 64 | 128 |
+| `dropout` | 0.3 | 0.3 | 0.3 | 0.3 |
+| `embed_dim` (room type) | 16 | 16 | 16 | 16 |
+| Tabular inputs | area, door_x, door_y | area, door_x, door_y | + n_vertices, aspect_ratio | + n_vertices, aspect_ratio |
+| Checkpoint | `cnn_v1.pt` | (not saved) | `cnn_v3.pt` | `cnn_v4.pt` |
+
+~400–425k parameters. Fits comfortably on RTX 4060 (8GB).
 
 ## Training (`train.py`)
 
@@ -93,9 +108,11 @@ Same metrics as baseline (MAE, RMSE, R², per-room-type MAE) on same test set fo
 | v1 | Raw concat (256+16+3=275), FC(275→128→1) | 17.90 | +6.88 | `3wcevehy` |
 | v2 | Image bottleneck 256→64, tabular FC 19→32 | 12.40 | +1.38 | `qutd7leh` |
 | v3 | +n_vertices, +aspect_ratio, tabular skip | 11.23 | +0.21 | `ld6iz2h4` |
-| Baseline | LightGBM on 14 tabular features | 11.02 | — | `3t4hiefb` |
+| v4 | +apt_type embedding (4-dim) | 8.07 | −2.95 | — |
+| Baseline (14f) | LightGBM on 14 tabular features | 11.02 | — | `3t4hiefb` |
+| Baseline (21f) | LightGBM on 21 features (+apt_type) | 8.24 | — | — |
 
-**Conclusion:** CNN at best matches LightGBM. Spatial image features provide negligible improvement over tabular features. LightGBM remains the production model for Phase 7.
+**Conclusion:** apartment_type improved both models substantially (v3→v4: −28%, baseline: −25%). CNN v4 slightly beats LightGBM 21f (8.07 vs 8.24). However, the difference is small (0.17 MAE) — LightGBM remains the production model for simplicity (no PyTorch inference needed).
 
 **Report:** [`reports/06-01_cnn-model-comparison.ipynb`](../reports/06-01_cnn-model-comparison.ipynb) | [HTML preview](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/06-01_cnn-model-comparison.html)
 
@@ -108,3 +125,5 @@ Same metrics as baseline (MAE, RMSE, R², per-room-type MAE) on same test set fo
 - **n_vertices + aspect_ratio + tabular skip (v3)**: Added two geometry features the baseline already had, plus a skip connection letting tabular features bypass the image branch. These were the baseline's key features that v1/v2 lacked. Dropped MAE from 12.40 to 11.23.
 
 - **Conclusion — spatial image features negligible**: Each improvement came from strengthening tabular input or weakening image input. The CNN never extracted useful spatial information that tabular features couldn't capture. LightGBM remains production model.
+
+- **apartment_type embedding added (v4)** (2026-02-27): Added 4-dim embedding for 7 apartment types to the tabular branch. Test MAE improved from 11.23 (v3) to 8.07 (v4), now slightly beating LightGBM 21f (8.24). CNN v4 wins on 6/9 room types (Bedroom −1.26, Kitchen −1.27, Living room −0.31), loses on WC (+2.54) and Children 3 (+1.71). Practical difference is small — LightGBM remains production model for simplicity. Saved as `models/cnn_v4.pt`.

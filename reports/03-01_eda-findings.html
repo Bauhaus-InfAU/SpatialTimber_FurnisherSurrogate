@@ -8219,11 +8219,12 @@ Children 4        49.3  35.33
 <li><strong>Shape complexity</strong> (vertex count) is a strong secondary signal (8-vertex rooms: median score 37 vs 92 for rectangles).</li>
 <li><strong>Door position</strong> has no linear predictive power in normalised form, but its spatial relationship to the room shape may matter — this requires rasterised input.</li>
 <li><strong>Aspect ratio</strong> has minimal discriminative power (91.6% of rooms are near-square).</li>
+<li><strong>Apartment type</strong> has a large effect on Living room (eta-sq=0.19, up to 56-point median delta) and Kitchen (eta-sq=0.11, 25-point delta). See <a href="03-03_apartment_type_eda.ipynb">03-03_apartment_type_eda.ipynb</a> for the full analysis.</li>
 </ul>
 <h3 id="8.3-Modelling-strategy">8.3 Modelling strategy<a class="anchor-link" href="#8.3-Modelling-strategy">¶</a></h3><ul>
-<li>A <strong>tabular baseline</strong> (e.g., gradient-boosted trees on the 14-dim feature vector) should comfortably beat the naive MAE of 37.48, primarily by learning the area\u2192failure relationship and room-type-specific patterns.</li>
-<li>A <strong>CNN on rasterised room images</strong> (Phase 4) can potentially capture shape\u2013door interactions and local geometry details that summary statistics miss. The weak linear correlations suggest substantial non-linear signal remains unexploited.</li>
-<li>The <strong>children's room scoring ceiling</strong> (never above ~76) means the model may need to learn type-specific score ranges rather than a universal 0\u2013100 mapping.</li>
+<li>A <strong>tabular baseline</strong> (e.g., gradient-boosted trees on the 21-dim feature vector: 5 numeric + 9 room type + 7 apartment type) should comfortably beat the naive MAE of 37.48, primarily by learning the area→failure relationship and room-type-specific patterns.</li>
+<li>A <strong>CNN on rasterised room images</strong> (Phase 4) can potentially capture shape–door interactions and local geometry details that summary statistics miss. The weak linear correlations suggest substantial non-linear signal remains unexploited.</li>
+<li>The <strong>children's room scoring ceiling</strong> (never above ~76) means the model may need to learn type-specific score ranges rather than a universal 0–100 mapping.</li>
 </ul>
 </div>
 </div>
@@ -8246,9 +8247,9 @@ Children 4        49.3  35.33
 <li><strong>Score = 0 is ambiguous:</strong> it means "complete failure" but the dataset does not distinguish between different failure modes (e.g., room too small for any furniture vs. furniture placed but scoring function returned 0).</li>
 </ul>
 <h3 id="9.3-Single-door-per-room">9.3 Single door per room<a class="anchor-link" href="#9.3-Single-door-per-room">¶</a></h3><p>Every room has exactly one door. Rooms with multiple doors, no doors, or wider openings (e.g., archways) are not represented.</p>
-<h3 id="9.4-No-contextual-features">9.4 No contextual features<a class="anchor-link" href="#9.4-No-contextual-features">¶</a></h3><ul>
-<li>Rooms are scored independently — no information about neighbouring rooms, corridors, windows, or floor-level context.</li>
-<li>The inter-room correlation (r = 0.006) suggests context doesn't matter for <em>this</em> furnisher, but a different scoring system might depend on apartment-level layout.</li>
+<h3 id="9.4-Limited-contextual-features">9.4 Limited contextual features<a class="anchor-link" href="#9.4-Limited-contextual-features">¶</a></h3><ul>
+<li><strong>Apartment type</strong> is now included as a feature (7 categories). It has a large effect on Living room and Kitchen scores but negligible effect on other room types. See <a href="03-03_apartment_type_eda.ipynb">03-03_apartment_type_eda.ipynb</a> for the analysis.</li>
+<li>Other contextual information (neighbouring rooms, corridors, windows, floor-level context) is not available. The inter-room correlation (r = 0.006) suggests broader context doesn't matter for <em>this</em> furnisher.</li>
 </ul>
 <h3 id="9.5-Apartment-type-distribution">9.5 Apartment type distribution<a class="anchor-link" href="#9.5-Apartment-type-distribution">¶</a></h3><ul>
 <li>2-Bedroom apartments are the most common (25%), 5-Bedroom the rarest (7.7%).</li>
@@ -8331,7 +8332,7 @@ Living room 7492      3.8     44.9   1.00   2.19  4, 6, 8         0       100
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<p><em>Full analysis notebooks: <a href="../notebooks/03-01_data_exploration.ipynb">03-01_data_exploration.ipynb</a>, <a href="../notebooks/03-02_umap_exploration.ipynb">03-02_umap_exploration.ipynb</a></em></p>
+<p><em>Full analysis notebooks: <a href="../notebooks/03-01_data_exploration.ipynb">03-01_data_exploration.ipynb</a>, <a href="../notebooks/03-02_umap_exploration.ipynb">03-02_umap_exploration.ipynb</a>, <a href="03-03_apartment_type_eda.ipynb">03-03_apartment_type_eda.ipynb</a></em></p>
 </div>
 </div>
 </div>

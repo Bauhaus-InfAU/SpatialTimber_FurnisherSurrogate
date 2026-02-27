@@ -22,6 +22,7 @@ Understand the training data before modeling. Establish reference metrics. Ident
 - [x] UMAP — per room type on 5 numeric features (isolate geometry→score per type)
 - [x] Establish reference metrics (naive MAE, feature-score correlations)
 - [x] **Checkpoint**: Review findings before proceeding — may inform feature choices
+- [x] Apartment type effect analysis (notebook 03-03)
 
 **Outcome:** EDA findings report at `reports/03-01_eda-findings.ipynb` ([HTML preview](https://htmlpreview.github.io/?https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/blob/main/reports/03-01_eda-findings.html)). Key findings: bimodal score (28.6% fail), area strongest predictor (r=+0.37), door position has zero signal, naive MAE=37.48, inter-room correlation near zero (r=0.006).
 

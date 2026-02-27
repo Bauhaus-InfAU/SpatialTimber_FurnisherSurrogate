@@ -5,6 +5,9 @@ Inputs (set in Grasshopper component):
     door    : Point3d   — door position on wall
     room_type : str     — one of: Bedroom, Living room, Bathroom, WC,
                           Kitchen, Children 1-4
+    apartment_type : str — one of: Studio (bedroom), Studio (living),
+                           1-Bedroom, 2-Bedroom, 3-Bedroom, 4-Bedroom,
+                           5-Bedroom
     model_path : str    — (optional) path to .pt checkpoint
 
 Output:
@@ -29,7 +32,10 @@ if not np.allclose(poly_np[0], poly_np[-1]):
 door_np = np.array([door.X, door.Y], dtype=np.float64)
 
 # Predict
-if model_path:
-    score = predict_score(poly_np, door_np, room_type, model_path=model_path)
-else:
-    score = predict_score(poly_np, door_np, room_type)
+score = predict_score(
+    poly_np,
+    door_np,
+    room_type,
+    apartment_type=apartment_type if apartment_type else None,
+    model_path=model_path if model_path else None,
+)

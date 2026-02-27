@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .data import ROOM_TYPES, Room
+from .data import APT_TYPES, ROOM_TYPES, Room
 
 # ── Per-room scalar features ─────────────────────────────────
 
@@ -53,21 +53,31 @@ def room_type_onehot(room: Room) -> np.ndarray:
     return vec
 
 
+def apt_type_onehot(room: Room) -> np.ndarray:
+    """One-hot encoding of apartment type. Shape: (7,)."""
+    vec = np.zeros(len(APT_TYPES), dtype=np.float32)
+    if room.apartment_type_idx is not None:
+        vec[room.apartment_type_idx] = 1.0
+    return vec
+
+
 # ── Feature vector assembly ───────────────────────────────────
 
 FEATURE_NAMES: list[str] = (
     ["area", "aspect_ratio", "n_vertices", "door_rel_x", "door_rel_y"]
     + [f"room_type_{rt}" for rt in ROOM_TYPES]
+    + [f"apt_type_{at}" for at in APT_TYPES]
 )
 
 
 def extract_features(room: Room) -> np.ndarray:
-    """Full feature vector for the baseline model. Shape: (14,).
+    """Full feature vector for the baseline model. Shape: (21,).
 
     Layout: [area, aspect_ratio, n_vertices, door_rel_x, door_rel_y,
-             room_type_Bedroom, ..., room_type_Children 4]
+             room_type_Bedroom, ..., room_type_Children 4,
+             apt_type_Studio (bedroom), ..., apt_type_5-Bedroom]
 
-    5 numeric + 9 one-hot = 14 features.
+    5 numeric + 9 room_type one-hot + 7 apt_type one-hot = 21 features.
     """
     dx, dy = door_rel_position(room)
     return np.concatenate(
@@ -77,12 +87,13 @@ def extract_features(room: Room) -> np.ndarray:
                 dtype=np.float32,
             ),
             room_type_onehot(room),
+            apt_type_onehot(room),
         ]
     )
 
 
 def extract_feature_matrix(rooms: list[Room]) -> np.ndarray:
-    """Feature matrix for a list of rooms. Shape: (N, 14)."""
+    """Feature matrix for a list of rooms. Shape: (N, 21)."""
     return np.stack([extract_features(r) for r in rooms])
 
 

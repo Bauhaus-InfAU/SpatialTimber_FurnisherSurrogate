@@ -14,6 +14,7 @@ Deploy the best model as a Grasshopper component for interactive use in Rhino 8.
 - [x] `grasshopper/surrogate_score.py` — GhPython component
 - [x] `grasshopper/README.md` — Rhino 8 setup instructions
 - [x] Test fixtures (`tests/fixtures/test_rooms.json`) + pytest suite (`tests/test_predict.py`)
+- [x] Add apartment_type input to predict_score() and GH component
 - [ ] `grasshopper/test_surrogate.gh` — predefined test rooms in Grasshopper
 - [ ] End-to-end test in Rhino 8 (install, load model, run component, compare scores)
 
@@ -22,7 +23,7 @@ Deploy the best model as a Grasshopper component for interactive use in Rhino 8.
 Use PyTorch (CPU-only, ~200MB) directly instead of ONNX export. Rationale:
 - Same `.pt` checkpoints from training — no export step
 - Model swap = replace one file, no re-export
-- Handles all architecture variants (v1/v2/v3) via checkpoint `config` dict
+- Handles all architecture variants (v1–v4) via checkpoint `config` dict
 - ONNX export is non-trivial for variable architecture (bottleneck, skip, n_tabular)
 
 ## Inference API (`predict.py`)

@@ -32,6 +32,18 @@ ROOM_TYPES: list[str] = [
 
 ROOM_TYPE_TO_IDX: dict[str, int] = {name: i for i, name in enumerate(ROOM_TYPES)}
 
+APT_TYPES: list[str] = [
+    "Studio (bedroom)",
+    "Studio (living)",
+    "1-Bedroom",
+    "2-Bedroom",
+    "3-Bedroom",
+    "4-Bedroom",
+    "5-Bedroom",
+]
+
+APT_TYPE_TO_IDX: dict[str, int] = {name: i for i, name in enumerate(APT_TYPES)}
+
 Split = Literal["train", "val", "test"]
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -66,6 +78,7 @@ class Room:
     # Provenance — set when loaded from JSONL, None at inference
     apartment_seed: int | None = None
     apartment_type: str | None = None
+    apartment_type_idx: int | None = None
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Room):
@@ -115,6 +128,7 @@ def _parse_room(
         score=raw["score"],
         apartment_seed=seed,
         apartment_type=apt_type,
+        apartment_type_idx=APT_TYPE_TO_IDX[apt_type],
     )
 
 
