@@ -15,8 +15,8 @@ Deploy the best model as a Grasshopper component for interactive use in Rhino 8.
 - [x] `grasshopper/README.md` — Rhino 8 setup instructions
 - [x] Test fixtures (`tests/fixtures/test_rooms.json`) + pytest suite (`tests/test_predict.py`)
 - [x] Add apartment_type input to predict_score() and GH component
-- [ ] `grasshopper/test_surrogate.gh` — predefined test rooms in Grasshopper
-- [ ] End-to-end test in Rhino 8 (install, load model, run component, compare scores)
+- [x] `grasshopper/test_surrogate.gh` — predefined test rooms in Grasshopper
+- [x] End-to-end test in Rhino 8 (install, load model, run component, compare scores)
 
 ## Approach: PyTorch CPU
 
@@ -74,3 +74,4 @@ pip install git+https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogat
 - **Python >=3.10** (2026-02-26): Lowered from >=3.12. Needed for `slots=True` in `data.py` dataclasses (3.10 feature). Inference code works on 3.9+ but full package needs 3.10.
 - **Model distribution via W&B Artifacts** (2026-02-26): `.pt` files are gitignored. Stored as W&B artifacts, downloadable via web UI or `wandb artifact get`.
 - **Decoupled rasterize.py** (2026-02-26): Moved `Room` import behind `TYPE_CHECKING` guard. Added `rasterize_arrays(polygon, door)` that accepts raw numpy arrays. Existing `rasterize_room(room)` delegates to it. This breaks the sklearn import chain for inference consumers.
+- **Test room loader component** (2026-02-27): `test_rooms.json` stores 7 test rooms with real cnn_v4.pt predictions as expected scores (generated via `predict_score()`, replacing earlier fabricated values). `test_room_loader.py` is a GhPython component that reads the JSON and outputs parallel lists (polygons, doors, room_types, apartment_types, names, expected_scores) for direct wiring into surrogate_score component. Expected scores assume `apartment_type` empty → defaults to "2-Bedroom" inside `predict_score()`.

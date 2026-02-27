@@ -18,8 +18,8 @@ Surrogate model to predict furniture placement scores (0–100) for residential 
 | 4 | **Rasterization** | 4/4 | `done` | [details](plans/04-rasterization.md) |
 | 5 | **Baseline Model** | 5/5 | `done` | [details](plans/05-baseline-model.md) |
 | 6 | **CNN Model** | 6/6 | `done` | [details](plans/06-cnn-model.md) |
-| 7 | **Grasshopper** | 7/9 | `in progress` | [details](plans/07-grasshopper.md) |
-| | **Total** | **46/48** | | |
+| 7 | **Grasshopper** | 9/9 | `done` | [details](plans/07-grasshopper.md) |
+| | **Total** | **48/48** | | |
 
 ## Documentation Strategy
 
@@ -71,4 +71,4 @@ SpatialTimber_FurnisherSurrogate/
 - [x] CNN MAE improves over baseline (or we understand why not) — v4 slightly beats LightGBM (8.07 vs 8.24)
 - [x] predict_score() API matches manual pipeline (bit-exact, 7 fixture rooms verified)
 - [x] apartment_type added across full stack (data, features, models, inference, GH component)
-- [ ] Grasshopper component returns predictions in Rhino 8
+- [x] Grasshopper component returns predictions in Rhino 8
