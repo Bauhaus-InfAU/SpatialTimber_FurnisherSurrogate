@@ -1,0 +1,111 @@
+{
+  "description": "Test rooms for verifying the Grasshopper surrogate component. Expected scores are cnn_v4.pt predictions with apartment_type defaulting to 2-Bedroom. All coordinates in meters.",
+  "rooms": [
+    {
+      "name": "rect_high_bedroom",
+      "room_type": "Bedroom",
+      "apartment_type": "",
+      "polygon": [
+        [0.0, 0.0],
+        [3.5193, 0.0],
+        [3.5193, 4.4561],
+        [0.0, 4.4561],
+        [0.0, 0.0]
+      ],
+      "door": [0.0, 3.5475],
+      "expected_score": 70.02
+    },
+    {
+      "name": "rect_zero_kitchen",
+      "room_type": "Kitchen",
+      "apartment_type": "",
+      "polygon": [
+        [19.6169, 0.0],
+        [20.9247, 0.0],
+        [20.9247, 2.0264],
+        [19.6169, 2.0264],
+        [19.6169, 0.0]
+      ],
+      "door": [20.5896, 0.0],
+      "expected_score": 0.00
+    },
+    {
+      "name": "lshape_living",
+      "room_type": "Living room",
+      "apartment_type": "",
+      "polygon": [
+        [6.162, 0.0],
+        [9.4097, 0.0],
+        [9.4097, 1.5189],
+        [11.2577, 1.5189],
+        [11.2577, 4.9371],
+        [6.162, 4.9371],
+        [6.162, 0.0]
+      ],
+      "door": [11.2577, 1.9545],
+      "expected_score": 86.27
+    },
+    {
+      "name": "complex_children",
+      "room_type": "Children 2",
+      "apartment_type": "",
+      "polygon": [
+        [29.9175, 0.0],
+        [33.7534, 0.0],
+        [33.7534, 0.6481],
+        [34.3236, 0.6481],
+        [34.3236, 1.6277],
+        [32.6282, 1.6277],
+        [32.6282, 2.8063],
+        [29.9175, 2.8063],
+        [29.9175, 0.0]
+      ],
+      "door": [32.2947, 0.0],
+      "expected_score": 54.64
+    },
+    {
+      "name": "small_bathroom",
+      "room_type": "Bathroom",
+      "apartment_type": "",
+      "polygon": [
+        [14.1215, 0.0],
+        [16.5784, 0.0],
+        [16.5784, 1.8506],
+        [14.1215, 1.8506],
+        [14.1215, 0.0]
+      ],
+      "door": [15.5249, 1.8506],
+      "expected_score": 56.86
+    },
+    {
+      "name": "large_living_high",
+      "room_type": "Living room",
+      "apartment_type": "",
+      "polygon": [
+        [7.7005, 0.0],
+        [10.9188, 0.0],
+        [10.9188, 5.2762],
+        [6.2591, 5.2762],
+        [6.2591, 0.8392],
+        [7.7005, 0.8392],
+        [7.7005, 0.0]
+      ],
+      "door": [7.1404, 0.8392],
+      "expected_score": 93.62
+    },
+    {
+      "name": "wc_mid",
+      "room_type": "WC",
+      "apartment_type": "",
+      "polygon": [
+        [16.0242, 0.0],
+        [17.6667, 0.0],
+        [17.6667, 1.3265],
+        [16.0242, 1.3265],
+        [16.0242, 0.0]
+      ],
+      "door": [17.0513, 0.0],
+      "expected_score": 47.43
+    }
+  ]
+}

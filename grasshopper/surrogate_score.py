@@ -1,4 +1,10 @@
+#! python 3
+# r: numpy, Pillow
 """Surrogate score predictor — GhPython component for Rhino 8.
+
+Dependencies auto-installed via ``# r:`` above: numpy, Pillow.
+PyTorch CPU and the furnisher_surrogate package must be installed
+manually once — see grasshopper/README.md for instructions.
 
 Inputs (set in Grasshopper component):
     polygon : Polyline  — room boundary (closed polyline)
