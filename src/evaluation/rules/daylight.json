@@ -1,0 +1,28 @@
+{
+  "_doc": "Daylight scoring rules. A room 'has daylight' if at least one of its polygon edges collinearly overlaps an exterior outer polygon edge (outer_is_exterior=true) within overlap_tolerance_m. Only habitable rooms are evaluated; non-habitable rooms are ignored in the aggregate.",
+  "room_rules": {
+    "_doc": "Keys are room_type strings. 'habitable': true = included in daylight evaluation; false = excluded (not scored, not counted in aggregate).",
+    "Bedroom":     {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Living room": {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Kitchen":     {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Children 1":  {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Children 2":  {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Children 3":  {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Children 4":  {"habitable": true,  "_doc": "Habitable — must have exterior wall access."},
+    "Bathroom":    {"habitable": false, "_doc": "Wet room — can be internal."},
+    "WC":          {"habitable": false, "_doc": "Wet room — can be internal."},
+    "Hallway":     {"habitable": false, "_doc": "Circulation space — does not require daylight."}
+  },
+  "no_habitable_rooms_score": {
+    "_doc": "Apartment-level daylight score when zero habitable rooms are present (e.g. only WC+Bathroom). 100 = vacuously true (no habitable rooms to fail). Set to 0 to treat the absence of habitable rooms as a failure instead.",
+    "value": 100
+  },
+  "overlap_tolerance_m": {
+    "_doc": "Max perpendicular distance (meters) between a room polygon edge and an exterior outer polygon edge for the overlap to count as valid daylight access. 0.01 = 1 cm.",
+    "value": 0.01
+  },
+  "aggregate": {
+    "_doc": "How to aggregate per-room daylight pass/fail into a single score. 'mean_pass_rate' = (habitable rooms with exterior wall / total habitable rooms) * 100.",
+    "method": "mean_pass_rate"
+  }
+}

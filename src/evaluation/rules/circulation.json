@@ -1,0 +1,33 @@
+{
+  "_doc": "Circulation scoring rules for the WP2 reward system. Per-room-type maximum graph-step distance from the entrance room. A room scores 100 if its BFS distance <= max; 0 otherwise. Increase a value to allow deeper nesting for that room type. The entrance room itself always has distance 0.",
+  "entry_detection": {
+    "_doc": "How to identify the entry room. 'entrance_point_on_wall' = find the room whose polygon boundary contains apartment.entrance within tolerance. If no Hallway is present, BFS starts from whichever room contains the entrance point.",
+    "method": "entrance_point_on_wall",
+    "tolerance_m": 0.05
+  },
+  "max_distance_from_entrance": {
+    "_doc": "Keys are room_type strings from ROOM_TYPES. Values contain 'max': integer max BFS steps from the entrance room. Rooms not listed here use max_distance_default.",
+    "Hallway":     {"max": 0, "_doc": "Hallway must BE the entry room (distance 0). If found at distance 1+, the layout is inverted — scored 0 for that room."},
+    "Living room": {"max": 1, "_doc": "Directly off hallway or entry room."},
+    "Kitchen":     {"max": 1, "_doc": "Directly off hallway or entry room."},
+    "Bathroom":    {"max": 1, "_doc": "Directly off hallway or entry room."},
+    "WC":          {"max": 1, "_doc": "Directly off hallway or entry room."},
+    "Bedroom":     {"max": 1, "_doc": "Directly off hallway or entry room."},
+    "Children 1":  {"max": 2, "_doc": "Can be accessed via a bedroom or directly off hallway."},
+    "Children 2":  {"max": 2, "_doc": "Can be accessed via a bedroom or directly off hallway."},
+    "Children 3":  {"max": 2, "_doc": "Can be accessed via a bedroom or directly off hallway."},
+    "Children 4":  {"max": 2, "_doc": "Can be accessed via a bedroom or directly off hallway."}
+  },
+  "max_distance_default": {
+    "_doc": "Fallback max distance for any room_type not listed in max_distance_from_entrance.",
+    "max": 1
+  },
+  "adjacency": {
+    "_doc": "Two rooms are adjacent if any apartment-level door point (from apartment.doors) lies on the polygon boundary of both rooms within tolerance_m. This forms the undirected graph used for BFS. Door points are apartment-level — not per-room — so a Hallway with N neighbours has N door points, all resolved automatically.",
+    "tolerance_m": 0.05
+  },
+  "aggregate": {
+    "_doc": "How to aggregate per-room pass/fail into a single circulation score. 'mean_pass_rate' = (rooms that pass / total rooms) * 100.",
+    "method": "mean_pass_rate"
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Bauhaus-InfAU/SpatialTimber_FurnisherSurrogate/tests/fixtures/apartments/schema.json",
+  "title": "ApartmentLayout",
+  "description": "JSON representation of ApartmentLayout (src/evaluation/apartment.py). One apartment fixture — input to daylight, circulation, and furnishability reward functions. All coordinates in meters, closed polylines (first point == last point). Polygon winding order is not enforced — algorithms use orientation-agnostic methods.",
+  "type": "object",
+  "required": ["id", "apartment_type", "entrance", "outer_polygon", "outer_is_exterior", "doors", "rooms", "expected_scores"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique fixture identifier. Hand-crafted fixtures use 'H##'; Luyang's test set uses 'D##' (daylight) and 'C##' (circulation).",
+      "examples": ["H01", "D03", "C07"]
+    },
+    "apartment_type": {
+      "type": "string",
+      "description": "Apartment type — one of APT_TYPES in src/evaluation/apartment.py.",
+      "enum": [
+        "Studio (bedroom)",
+        "Studio (living)",
+        "1-Bedroom",
+        "2-Bedroom",
+        "3-Bedroom",
+        "4-Bedroom",
+        "5-Bedroom"
+      ]
+    },
+    "entrance": {
+      "$ref": "#/$defs/point2d",
+      "description": "Apartment entrance — a point on the outer wall polygon, in meters. Used to identify the entry room for circulation scoring."
+    },
+    "outer_polygon": {
+      "$ref": "#/$defs/closed_polyline",
+      "description": "Apartment boundary polygon. Closed polyline in meters (first point == last point). Must encompass all rooms."
+    },
+    "outer_is_exterior": {
+      "type": "array",
+      "description": "Exterior flag per outer polygon edge. outer_is_exterior[i] is true if the edge from outer_polygon[i] to outer_polygon[i+1] faces outside (facade or exposed gable); false for party walls. Length must equal len(outer_polygon) - 1.",
+      "minItems": 1,
+      "items": {"type": "boolean"}
+    },
+    "doors": {
+      "type": "array",
+      "description": "All interior door openings in the apartment. Each door is a point [x, y] on the shared wall between two rooms. Two rooms are adjacent (for BFS circulation) if any door point lies on both their polygon boundaries. The surrogate uses the door point on each room's boundary as the furniture-placement door. Hallway rooms have no dedicated door point — they connect via shared door points with adjacent rooms.",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/point2d"}
+    },
+    "rooms": {
+      "type": "array",
+      "description": "All rooms in the apartment. At least one room required.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["room_type", "polygon"],
+        "additionalProperties": false,
+        "properties": {
+          "room_type": {
+            "type": "string",
+            "description": "Room type — one of ROOM_TYPES in src/evaluation/apartment.py.",
+            "enum": [
+              "Bedroom",
+              "Living room",
+              "Bathroom",
+              "WC",
+              "Kitchen",
+              "Children 1",
+              "Children 2",
+              "Children 3",
+              "Children 4",
+              "Hallway"
+            ]
+          },
+          "polygon": {
+            "$ref": "#/$defs/closed_polyline",
+            "description": "Room boundary polygon. Closed polyline in meters (first point == last point)."
+          }
+        }
+      }
+    },
+    "expected_scores": {
+      "type": "object",
+      "description": "Ground-truth scores for this fixture. Used in pytest assertions. Set to null when not manually labeled or when the score is computed by a model.",
+      "required": ["daylight", "circulation", "furnitability"],
+      "additionalProperties": false,
+      "properties": {
+        "daylight": {
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 100},
+            {"type": "null"}
+          ],
+          "description": "Apartment-level daylight score (0–100). Percentage of habitable rooms with exterior wall access. 100 = vacuous pass when no habitable rooms exist. null = not labeled."
+        },
+        "circulation": {
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 100},
+            {"type": "null"}
+          ],
+          "description": "Apartment-level circulation score (0–100). Percentage of rooms whose BFS distance from the entrance room is within the type's max threshold. null = not labeled."
+        },
+        "furnitability": {
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 100},
+            {"type": "null"}
+          ],
+          "description": "Apartment-level furnishability score (0–100). Mean surrogate prediction across scored rooms. Always null in hand-crafted fixtures — computed by the model, not manually labeled."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point2d": {
+      "type": "array",
+      "description": "2D point [x, y] in meters.",
+      "items": {"type": "number"},
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "closed_polyline": {
+      "type": "array",
+      "description": "Closed polyline — array of [x, y] points. First point must equal last point. Minimum 4 points (triangle + closing point).",
+      "items": {"$ref": "#/$defs/point2d"},
+      "minItems": 4
+    }
+  }
+}

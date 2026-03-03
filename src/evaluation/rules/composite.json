@@ -1,0 +1,12 @@
+{
+  "_doc": "Composite reward weights. composite_score = w_furnitability * furnitability_score + w_daylight * daylight_score + w_circulation * circulation_score. Weights should sum to 1.0. Adjust to prioritise specific domains in RL training.",
+  "weights": {
+    "furnitability": {"weight": 0.333, "_doc": "Equal weight by default."},
+    "daylight":      {"weight": 0.333, "_doc": "Equal weight by default."},
+    "circulation":   {"weight": 0.334, "_doc": "Equal weight by default. Slightly higher to compensate float rounding to reach sum=1.000."}
+  },
+  "missing_score_handling": {
+    "_doc": "What to do when a domain score is null (e.g. apartment has no habitable rooms for daylight). 'skip' = exclude that domain from the weighted average and renormalise remaining weights. 'zero' = treat null as 0.",
+    "method": "skip"
+  }
+}

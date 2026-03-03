@@ -1,0 +1,20 @@
+{
+  "_doc": "Furnishability scoring rules. Defines which room types are evaluated by the furnishability surrogate model. Rooms marked scored=false receive null and are excluded from the apartment aggregate.",
+  "room_rules": {
+    "_doc": "Keys are room_type strings. 'scored': true = evaluated by the CNN/LightGBM surrogate model; false = excluded (null score, not counted in aggregate).",
+    "Bedroom":     {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Living room": {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Kitchen":     {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Bathroom":    {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "WC":          {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Children 1":  {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Children 2":  {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Children 3":  {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Children 4":  {"scored": true,  "_doc": "Scored by the furnisher surrogate."},
+    "Hallway":     {"scored": false, "_doc": "Not scored — hallways are not furnished. Excluded from aggregate."}
+  },
+  "aggregate": {
+    "_doc": "How to aggregate per-room surrogate predictions into a single furnishability score. 'mean' = arithmetic mean of scored rooms only (rooms with scored=false are excluded).",
+    "method": "mean"
+  }
+}

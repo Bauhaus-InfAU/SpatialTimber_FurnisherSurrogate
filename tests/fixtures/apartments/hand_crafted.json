@@ -1,0 +1,129 @@
+[
+  {
+    "id": "H01",
+    "apartment_type": "2-Bedroom",
+    "entrance": [4.0, 0.0],
+    "outer_polygon": [[0,0], [8,0], [8,6], [0,6], [0,0]],
+    "outer_is_exterior": [true, true, true, true],
+    "doors": [[2.0, 2.0], [6.0, 2.0]],
+    "rooms": [
+      {
+        "room_type": "Hallway",
+        "polygon": [[0,0], [8,0], [8,2], [0,2], [0,0]]
+      },
+      {
+        "room_type": "Bedroom",
+        "polygon": [[0,2], [4,2], [4,6], [0,6], [0,2]]
+      },
+      {
+        "room_type": "Bedroom",
+        "polygon": [[4,2], [8,2], [8,6], [4,6], [4,2]]
+      }
+    ],
+    "expected_scores": {
+      "daylight": 100,
+      "circulation": 100,
+      "furnitability": null
+    }
+  },
+  {
+    "id": "H02",
+    "apartment_type": "2-Bedroom",
+    "entrance": [4.0, 0.0],
+    "outer_polygon": [[0,0], [8,0], [8,6], [0,6], [0,0]],
+    "outer_is_exterior": [true, false, false, false],
+    "doors": [[2.0, 2.0], [6.0, 2.0]],
+    "rooms": [
+      {
+        "room_type": "Hallway",
+        "polygon": [[0,0], [8,0], [8,2], [0,2], [0,0]]
+      },
+      {
+        "room_type": "Bedroom",
+        "polygon": [[0,2], [4,2], [4,6], [0,6], [0,2]]
+      },
+      {
+        "room_type": "Bedroom",
+        "polygon": [[4,2], [8,2], [8,6], [4,6], [4,2]]
+      }
+    ],
+    "expected_scores": {
+      "daylight": 0,
+      "circulation": 100,
+      "furnitability": null
+    }
+  },
+  {
+    "id": "H03",
+    "apartment_type": "Studio (living)",
+    "entrance": [0.0, 2.5],
+    "outer_polygon": [[0,0], [9,0], [9,5], [0,5], [0,0]],
+    "outer_is_exterior": [false, false, false, false],
+    "doors": [[5.0, 2.5]],
+    "rooms": [
+      {
+        "room_type": "Living room",
+        "polygon": [[0,0], [5,0], [5,5], [0,5], [0,0]]
+      },
+      {
+        "room_type": "Bedroom",
+        "polygon": [[5,0], [9,0], [9,5], [5,5], [5,0]]
+      }
+    ],
+    "expected_scores": {
+      "daylight": 0,
+      "circulation": 100,
+      "furnitability": null
+    }
+  },
+  {
+    "id": "H04",
+    "apartment_type": "1-Bedroom",
+    "entrance": [0.0, 2.0],
+    "outer_polygon": [[0,0], [10,0], [10,4], [0,4], [0,0]],
+    "outer_is_exterior": [true, false, false, true],
+    "doors": [[2.0, 2.0], [6.0, 2.0]],
+    "rooms": [
+      {
+        "room_type": "Hallway",
+        "polygon": [[0,0], [2,0], [2,4], [0,4], [0,0]]
+      },
+      {
+        "room_type": "Living room",
+        "polygon": [[2,0], [6,0], [6,4], [2,4], [2,0]]
+      },
+      {
+        "room_type": "Bedroom",
+        "polygon": [[6,0], [10,0], [10,4], [6,4], [6,0]]
+      }
+    ],
+    "expected_scores": {
+      "daylight": 100,
+      "circulation": 66.7,
+      "furnitability": null
+    }
+  },
+  {
+    "id": "H05",
+    "apartment_type": "Studio (bedroom)",
+    "entrance": [1.0, 0.0],
+    "outer_polygon": [[0,0], [4,0], [4,3], [0,3], [0,0]],
+    "outer_is_exterior": [true, false, false, false],
+    "doors": [[2.0, 1.5]],
+    "rooms": [
+      {
+        "room_type": "WC",
+        "polygon": [[0,0], [2,0], [2,3], [0,3], [0,0]]
+      },
+      {
+        "room_type": "Bathroom",
+        "polygon": [[2,0], [4,0], [4,3], [2,3], [2,0]]
+      }
+    ],
+    "expected_scores": {
+      "daylight": 100,
+      "circulation": 100,
+      "furnitability": null
+    }
+  }
+]

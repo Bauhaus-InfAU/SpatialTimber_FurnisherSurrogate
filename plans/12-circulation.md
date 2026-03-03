@@ -23,36 +23,41 @@ Check whether every room in an apartment is accessible from the apartment entran
 
 ## Check Logic
 
-**Step 1 — Room adjacency graph:**
-- Two rooms A and B are adjacent if: the door of A lies on a wall edge of B (within tolerance), OR the door of B lies on a wall edge of A
-- Edge in graph: (room_A, room_B) — undirected
+Rules are loaded via `load_rules('circulation')` from `src/evaluation/rules/circulation.json`. No thresholds are hardcoded in Python.
 
-**Step 2 — Entrance-hallway connection:**
-- Identify hallway room(s) (room_type = "Hallway")
-- The hallway is connected to the entrance if: `apartment.entrance` lies on a wall edge of the hallway polygon (within tolerance)
-- If no hallway exists: all non-entrance rooms are unreachable → circulation_score = 0
+**Step 1 — Entrance room detection:**
+- The **entry room** is the room whose polygon boundary contains `apartment.entrance` within `entry_detection.tolerance_m = 0.05` m.
+- If the apartment has a Hallway containing the entrance → Hallway is the entry room (distance 0).
+- If no Hallway exists → whichever room contains the entrance is the entry room (BFS starts there). This supports studio layouts (entrance into Living room).
 
-**Step 3 — Graph reachability:**
-- Start BFS/DFS from hallway node(s)
-- A room is reachable if it can be reached from hallway via door connections
-- Hallway always counts as reachable (it IS the circulation node)
+**Step 2 — Room adjacency graph:**
+- Two rooms A and B are adjacent if: the door of A lies on a wall edge of B (within `adjacency.door_tolerance_m = 0.05` m), OR the door of B lies on a wall edge of A.
+- Edge in graph: (room_A, room_B) — undirected.
+
+**Step 3 — BFS distance scoring:**
+- Run BFS from the entry room. Compute each room's BFS distance.
+- For each room, look up its max allowed distance from `circulation.json → max_distance_from_entrance[room_type].max` (fallback: `max_distance_default.max = 1`).
+- `room_score = 100` if `distance ≤ max`; `0` otherwise.
 
 **Score output:**
 ```python
 {
     "rooms": {
-        "Bedroom": 100,       # 100 = reachable, 0 = not reachable
-        "Living room": 100,
-        "Hallway": 100,       # always 100
-        "Kitchen": 0,         # isolated — no door to hallway
+        "Hallway": 100,       # dist=0, max=0 → PASS
+        "Living room": 100,   # dist=1, max=1 → PASS
+        "Bedroom": 0,         # dist=2, max=1 → FAIL
+        "Kitchen": 100,       # dist=1, max=1 → PASS
     },
     "total_rooms": 4,
-    "reachable_rooms": 3,
+    "rooms_passing": 3,
     "circulation_score": 75.0   # (3/4) × 100
 }
 ```
 
-**Tolerance:** 0.05m (5cm) default for door-on-wall detection. Larger than daylight tolerance because door placement may have small numerical errors in the RL generator.
+**Tolerances** (from `circulation.json`):
+- Entry detection: 0.05 m
+- Door-on-wall adjacency: 0.05 m
+- Both are larger than daylight tolerance (0.01 m) to handle small numerical errors from the RL generator.
 
 ---
 
@@ -60,23 +65,27 @@ Check whether every room in an apartment is accessible from the apartment entran
 
 | Case | Handling |
 |------|---------|
-| No hallway room | circulation_score = 0; all rooms except entrance-adjacent unreachable |
-| Multiple hallway rooms | treat as connected if they share a door; BFS starts from all hallways |
-| Room with door but no shared wall with any other room | isolated, score = 0 |
-| Entrance opens directly into a non-hallway room | that room is reachable; others only via its doors |
+| No Hallway room | Entry room = whichever room contains `apartment.entrance`. BFS starts from there. Rooms are scored by distance from that entry room vs. their type max. |
+| Multiple Hallway rooms | Treat each Hallway as a graph node. BFS explores all of them. A Hallway at dist=0 passes (max=0); a Hallway at dist>0 fails (inverted layout). |
+| Room with door but no shared wall with any other room | Isolated, BFS cannot reach it → dist = ∞ → score = 0. |
+| Hallway not connected to entrance (wrong room contains entrance) | Hallway is a regular node in the graph. If entrance is in Living room, Living room is dist=0; Hallway may be dist=1, which exceeds max=0 → Hallway scores 0 (inverted layout). |
 
 ---
 
 ## Test Cases (≥6)
 
+Use fixtures from `tests/fixtures/apartments/hand_crafted.json` plus Luyang's test set.
+
 | ID | Description | Expected |
 |----|-------------|---------|
-| T1 | All rooms connected via hallway | circulation_score=100 |
-| T2 | One room has no door to hallway | circulation_score < 100 |
-| T3 | No hallway room present | circulation_score=0 |
-| T4 | Hallway not connected to entrance | circulation_score=0 (or partial if rooms connect to hallway directly) |
-| T5 | Two hallway rooms (corridor split) | both count as reachable; BFS explores both |
-| T6 | Room connects to another room but not hallway (indirect path) | NOT counted as reachable (must go through hallway) |
+| T1 (H01) | All rooms within distance threshold (Hallway + 2 Bedrooms) | circulation_score=100 |
+| T2 | One room isolated (door not on any adjacent room wall) | circulation_score < 100 |
+| T3 (H03) | No Hallway room; entrance in Living room; Bedroom at dist=1 | circulation_score=100 |
+| T4 (H04) | Bedroom at BFS dist=2, max=1 | circulation_score=66.7 (2/3 pass) |
+| T5 | Two Hallway rooms forming a corridor; both reachable | both Hallways scored by dist vs max=0; only the entry Hallway at dist=0 passes |
+| T6 (H05) | Only WC + Bathroom; both within dist threshold | circulation_score=100 |
+
+See also `SCORING.md` for expected scores on all H01–H05 hand-crafted cases.
 
 ---
 
@@ -93,6 +102,9 @@ Check whether every room in an apartment is accessible from the apartment entran
 ## Decisions Log
 
 - **Phase renamed 11 → 12** (2026-03-01): New Phase 8 (Floor Plan Representation) inserted. Renumbered accordingly.
+- **Distance-based model replaces BFS reachability** (2026-03-02): Original plan used binary reachability from Hallway (reachable=100, not=0). Phase 8 implementation replaced this with a BFS-distance model: each room type has a maximum allowed distance from the entry room (configured in `circulation.json`). This rewards layouts where rooms are appropriately close to the entrance, not just connected. Hallway max=0, most rooms max=1, Children rooms max=2. Score = (rooms_within_threshold / total_rooms) × 100.
+- **Entrance-room fallback for no-Hallway apartments** (2026-03-02): When no Hallway exists, BFS starts from the room containing `apartment.entrance` (e.g. Living room in a studio). This avoids blanket circulation_score=0 for valid studio layouts. Algorithm in `circulation.json → entry_detection.method = "entrance_point_on_wall"`.
+- **Rules in JSON, not Python** (2026-03-02): All thresholds (max distances, tolerances) live in `src/evaluation/rules/circulation.json`. Implementation calls `load_rules('circulation')` at function invocation time. No hardcoded dicts in Python.
 
 ---
 
